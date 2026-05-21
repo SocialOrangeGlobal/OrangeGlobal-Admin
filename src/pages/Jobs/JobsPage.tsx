@@ -14,8 +14,8 @@ export default function JobsPage() {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("");
-  const [mode, setMode] = useState("");
+  const [category] = useState("");
+  const [mode] = useState("");
   const [statusTab, setStatusTab] = useState<"all" | "published" | "drafts">("all");
 
   const [page, setPage] = useState(1);
@@ -47,8 +47,8 @@ export default function JobsPage() {
         statusTab === "published"
           ? "true"
           : statusTab === "drafts"
-          ? "false"
-          : "all";
+            ? "false"
+            : "all";
 
       const res = await authFetch(
         `${API_URL}/jobs?page=${page}&limit=${limit}&search=${encodeURIComponent(
@@ -266,11 +266,10 @@ export default function JobsPage() {
             <button
               key={tab}
               onClick={() => setStatusTab(tab)}
-              className={`rounded-md px-4 py-2 text-sm font-medium transition capitalize ${
-                statusTab === tab
+              className={`rounded-md px-4 py-2 text-sm font-medium transition capitalize ${statusTab === tab
                   ? "bg-white text-brand-500 shadow-sm dark:bg-gray-900"
                   : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              }`}
+                }`}
             >
               {tab}
             </button>
@@ -422,11 +421,10 @@ export default function JobsPage() {
                       )}
                       <button
                         onClick={() => setPage(p)}
-                        className={`inline-flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium transition cursor-pointer ${
-                          page === p
+                        className={`inline-flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium transition cursor-pointer ${page === p
                             ? "bg-brand-500 text-white"
                             : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
-                        }`}
+                          }`}
                       >
                         {p}
                       </button>

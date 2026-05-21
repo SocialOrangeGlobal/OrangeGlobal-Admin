@@ -71,7 +71,6 @@ function SimpleDropdown({
   onChange,
   options,
   placeholder = "Select...",
-  required = false
 }: {
   value: string;
   onChange: (val: string) => void;

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Modal } from "../../components/ui/modal";
 import Button from "../../components/ui/button/Button";
-import Input from "../../components/form/input/InputField";
 
 interface JobFormModalProps {
   isOpen: boolean;
@@ -75,13 +74,13 @@ export default function JobFormModal({
         requirements: Array.isArray(job.requirements)
           ? job.requirements
           : typeof job.requirements === "string"
-          ? JSON.parse(job.requirements)
-          : [""],
+            ? JSON.parse(job.requirements)
+            : [""],
         benefits: Array.isArray(job.benefits)
           ? job.benefits
           : typeof job.benefits === "string"
-          ? JSON.parse(job.benefits)
-          : [""],
+            ? JSON.parse(job.benefits)
+            : [""],
         isPublished: job.isPublished !== false,
       });
     } else {
@@ -205,20 +204,18 @@ export default function JobFormModal({
               return (
                 <div key={s} className="flex items-center flex-1">
                   <div
-                    className={`h-8 w-8 rounded-lg flex items-center justify-center font-semibold text-xs transition-all duration-300 ${
-                      isActive
+                    className={`h-8 w-8 rounded-lg flex items-center justify-center font-semibold text-xs transition-all duration-300 ${isActive
                         ? "bg-brand-500 text-white shadow-lg shadow-brand-500/20"
                         : isPast
-                        ? "bg-brand-100 text-brand-600 dark:bg-brand-950/20 dark:text-brand-400"
-                        : "bg-gray-100 text-gray-400 dark:bg-gray-800"
-                    }`}
+                          ? "bg-brand-100 text-brand-600 dark:bg-brand-950/20 dark:text-brand-400"
+                          : "bg-gray-100 text-gray-400 dark:bg-gray-800"
+                      }`}
                   >
                     {i + 1}
                   </div>
                   <span
-                    className={`ml-2 text-xs font-medium hidden sm:inline capitalize ${
-                      isActive ? "text-brand-500 font-bold" : "text-gray-500"
-                    }`}
+                    className={`ml-2 text-xs font-medium hidden sm:inline capitalize ${isActive ? "text-brand-500 font-bold" : "text-gray-500"
+                      }`}
                   >
                     {s === "perks" ? "Requirements & Perks" : s}
                   </span>
