@@ -17,7 +17,7 @@ export default function UserProfiles() {
       const response = await authFetch(`${API_URL}/users/me`);
       if (response.ok) {
         const result = await response.json();
-        setProfile(result.data?.profile || {});
+        setProfile(result?.data?.profile || {});
       }
     } catch (error) {
       console.error("Error fetching profile:", error);

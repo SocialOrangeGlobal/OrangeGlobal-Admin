@@ -62,7 +62,7 @@ export default function UsersPage() {
       );
       if (response.ok) {
         const result = await response.json();
-        const data = result.data || {};
+        const data = result?.data || {};
         setItems(data.items || []);
         setTotal(data.total || 0);
         setPages(data.pages || 1);
@@ -203,8 +203,8 @@ export default function UsersPage() {
           <button
             onClick={() => handleTabChange("talents")}
             className={`rounded-md px-4 py-2 text-sm font-medium transition ${activeTab === "talents"
-                ? "bg-white text-brand-500 shadow-sm dark:bg-gray-900"
-                : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              ? "bg-white text-brand-500 shadow-sm dark:bg-gray-900"
+              : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               }`}
           >
             Talent
@@ -212,8 +212,8 @@ export default function UsersPage() {
           <button
             onClick={() => handleTabChange("employers")}
             className={`rounded-md px-4 py-2 text-sm font-medium transition ${activeTab === "employers"
-                ? "bg-white text-brand-500 shadow-sm dark:bg-gray-900"
-                : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              ? "bg-white text-brand-500 shadow-sm dark:bg-gray-900"
+              : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               }`}
           >
             Employer
@@ -441,8 +441,8 @@ export default function UsersPage() {
                       <button
                         onClick={() => setPage(p)}
                         className={`inline-flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium transition ${page === p
-                            ? "bg-brand-500 text-white"
-                            : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+                          ? "bg-brand-500 text-white"
+                          : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
                           }`}
                       >
                         {p}

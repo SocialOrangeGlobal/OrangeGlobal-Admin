@@ -60,7 +60,7 @@ export default function JobsPage() {
 
       if (res.ok) {
         const result = await res.json();
-        const data = result.data.data || {};
+        const data = result?.data?.data || {};
         setItems(data.items || []);
         setTotal(data.total || 0);
         setPages(data.pages || 1);
@@ -81,7 +81,7 @@ export default function JobsPage() {
       const res = await authFetch(`${API_URL}/jobs/stats`);
       if (res.ok) {
         const result = await res.json();
-        setStats(result.data.data || { total: 0, published: 0, unpublished: 0, totalVacancies: 0 });
+        setStats(result?.data?.data || { total: 0, published: 0, unpublished: 0, totalVacancies: 0 });
       }
     } catch (err) {
       console.error("Error fetching job stats:", err);
