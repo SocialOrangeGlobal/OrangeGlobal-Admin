@@ -168,6 +168,11 @@ export default function JobFormModal({
     e.preventDefault();
     if (!validateStep()) return;
 
+    if (step !== "perks") {
+      handleNext();
+      return;
+    }
+
     // Filter empty items
     const requirements = formData.requirements.map(r => r.trim()).filter(Boolean);
     const benefits = formData.benefits.map(b => b.trim()).filter(Boolean);
@@ -205,10 +210,10 @@ export default function JobFormModal({
                 <div key={s} className="flex items-center flex-1">
                   <div
                     className={`h-8 w-8 rounded-lg flex items-center justify-center font-semibold text-xs transition-all duration-300 ${isActive
-                        ? "bg-brand-500 text-white shadow-lg shadow-brand-500/20"
-                        : isPast
-                          ? "bg-brand-100 text-brand-600 dark:bg-brand-950/20 dark:text-brand-400"
-                          : "bg-gray-100 text-gray-400 dark:bg-gray-800"
+                      ? "bg-brand-500 text-white shadow-lg shadow-brand-500/20"
+                      : isPast
+                        ? "bg-brand-100 text-brand-600 dark:bg-brand-950/20 dark:text-brand-400"
+                        : "bg-gray-100 text-gray-400 dark:bg-gray-800"
                       }`}
                   >
                     {i + 1}
@@ -508,6 +513,7 @@ export default function JobFormModal({
 
               {step === "perks" ? (
                 <Button
+                  key="submit-btn"
                   type="submit"
                   disabled={saving}
                   className="px-6 py-2.5 rounded-lg bg-brand-500 text-white font-semibold flex items-center justify-center gap-1.5 shadow-md shadow-brand-500/10"
@@ -522,6 +528,7 @@ export default function JobFormModal({
                 </Button>
               ) : (
                 <Button
+                  key="next-btn"
                   type="button"
                   onClick={handleNext}
                   className="px-6 py-2.5 rounded-lg bg-brand-500 text-white font-semibold flex items-center justify-center gap-1"
