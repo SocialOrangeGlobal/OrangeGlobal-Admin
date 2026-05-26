@@ -5,7 +5,6 @@ import PageMeta from "../../components/common/PageMeta";
 import { useAuth } from "../../context/AuthContext";
 import Badge from "../../components/ui/badge/Badge";
 import Button from "../../components/ui/button/Button";
-import Select from "../../components/form/Select";
 import PageLoader from "../../components/ui/PageLoader";
 import ApplicationStatusModal from "./ApplicationStatusModal";
 import ApplicationViewModal from "./ApplicationViewModal";

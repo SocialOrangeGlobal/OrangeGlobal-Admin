@@ -1,5 +1,4 @@
 import { Modal } from "../../components/ui/modal";
-import Button from "../../components/ui/button/Button";
 import Badge from "../../components/ui/badge/Badge";
 
 interface ViewJobDetailsModalProps {

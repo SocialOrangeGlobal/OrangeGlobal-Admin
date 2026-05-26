@@ -1,5 +1,5 @@
 import { Modal } from "../../components/ui/modal";
-import Button from "../../components/ui/button/Button";
+
 
 interface DocPreviewModalProps {
   isOpen: boolean;
