@@ -47,7 +47,7 @@ export default function Home() {
       <div className="flex flex-col items-center justify-center min-h-[400px]">
         <h2 className="text-xl font-bold text-red-500 mb-2">Error Loading Dashboard</h2>
         <p className="text-gray-500">{error}</p>
-        <button 
+        <button
           onClick={() => window.location.reload()}
           className="mt-4 px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors"
         >
@@ -63,14 +63,15 @@ export default function Home() {
         title="Admin Dashboard | Orange Global"
         description="Overview of Orange Global recruitment metrics and applications."
       />
-      
+
+      {/* Dashboard Details */}
       <div className="mb-6">
         <h3 className="text-gray-800 dark:text-white text-2xl font-bold">Dashboard Overview</h3>
         <p className="text-gray-500 text-sm mt-1">Platform metrics and recent recruitment activities.</p>
       </div>
 
       <div className="grid grid-cols-12 gap-4 md:gap-6">
-        
+
         {/* Top Metrics Row */}
         <div className="col-span-12">
           <DashboardMetrics metrics={stats.metrics} />
@@ -79,7 +80,7 @@ export default function Home() {
         {/* Charts Row */}
         <div className="col-span-12 space-y-6 xl:col-span-7">
           <ApplicationTrendsChart statusDistribution={stats.applicationStatusDistribution} />
-          
+
           <RecentApplications applications={stats.recentApplications} />
         </div>
 
