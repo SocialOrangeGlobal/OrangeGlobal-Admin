@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal } from "../../components/ui/modal";
 import Button from "../../components/ui/button/Button";
 import Input from "../../components/form/input/InputField";
@@ -61,10 +61,10 @@ const toDateInput = (raw: string): string => {
   if (dashDMY) return `${dashDMY[3]}-${dashDMY[2].padStart(2, "0")}-${dashDMY[1].padStart(2, "0")}`;
   return "";
 };
+import Select from "../../components/form/Select";
 
 /**
- * SimpleDropdown — custom button-based dropdown, visually identical to
- * SearchableDropdown but with NO search input. Fully keyboard-accessible.
+ * SimpleDropdown — wrapper around standard Select component for backwards compatibility.
  */
 function SimpleDropdown({
   value,
@@ -78,65 +78,14 @@ function SimpleDropdown({
   placeholder?: string;
   required?: boolean;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   return (
-    <div className="relative w-full" ref={containerRef}>
-      {/* Trigger button — same height/border/ring as SearchableDropdown input */}
-      <button
-        type="button"
-        onClick={() => setIsOpen((o) => !o)}
-        className={
-          "h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm shadow-theme-xs " +
-          "text-left flex items-center justify-between cursor-pointer " +
-          "focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/20 " +
-          "dark:border-gray-700 dark:bg-gray-900"
-        }
-      >
-        <span className={value ? "text-gray-900 dark:text-white/90" : "text-gray-400 dark:text-white/30"}>
-          {value || placeholder}
-        </span>
-        <svg
-          className={`h-4 w-4 flex-shrink-0 text-gray-400 dark:text-gray-500 transition-transform duration-150 ${isOpen ? "rotate-180" : ""
-            }`}
-          fill="none" viewBox="0 0 24 24" stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-
-      {/* Dropdown list — identical to SearchableDropdown */}
-      {isOpen && (
-        <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-800 dark:bg-gray-950">
-          {options.map((opt) => (
-            <button
-              key={opt}
-              type="button"
-              onClick={() => { onChange(opt); setIsOpen(false); }}
-              className={
-                "w-full px-4 py-2 text-left text-sm transition-colors " +
-                (opt === value
-                  ? "bg-brand-50 text-brand-600 font-medium dark:bg-brand-950/20 dark:text-brand-400"
-                  : "text-gray-800 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800")
-              }
-            >
-              {opt}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
+    <Select
+      options={options.map(opt => ({ value: opt, label: opt }))}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className="!shadow-theme-xs !h-11"
+    />
   );
 }
 

@@ -5,6 +5,7 @@ import UserInfoCard from "../components/UserProfile/UserInfoCard";
 import UserAddressCard from "../components/UserProfile/UserAddressCard";
 import PageMeta from "../components/common/PageMeta";
 import { useAuth } from "../context/AuthContext";
+import PageLoader from "../components/ui/PageLoader";
 
 export default function UserProfiles() {
   const [profile, setProfile] = useState<any>(null);
@@ -31,11 +32,7 @@ export default function UserProfiles() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex h-96 items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#fb6514] border-t-transparent"></div>
-      </div>
-    );
+    return <PageLoader fullScreen={false} message="Loading Profile..." subMessage="Fetching admin details" />;
   }
 
   return (

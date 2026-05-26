@@ -10,6 +10,7 @@ import UserViewModal, { DefaultUserIcon } from "./UserViewModal";
 import UserEditModal from "./UserEditModal";
 import UserDeleteModal from "./UserDeleteModal";
 import DocPreviewModal from "./DocPreviewModal";
+import PageLoader from "../../components/ui/PageLoader";
 
 export default function UsersPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -235,9 +236,7 @@ export default function UsersPage() {
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
         <div className="max-w-full overflow-x-auto">
           {loading ? (
-            <div className="flex h-64 items-center justify-center">
-              <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#fb6514] border-t-transparent"></div>
-            </div>
+            <PageLoader fullScreen={false} message="Loading Users..." subMessage="Fetching user database" />
           ) : items.length === 0 ? (
             <div className="flex h-64 flex-col items-center justify-center text-gray-500 dark:text-gray-400">
               <svg className="mb-3 h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">

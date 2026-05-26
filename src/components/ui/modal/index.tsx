@@ -55,7 +55,7 @@ export const Modal: React.FC<ModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-99999 overflow-y-auto">
-      <div className="flex min-h-full items-center justify-center p-4">
+      <div className="flex min-h-full items-center justify-center p-4 sm:py-8">
         {!isFullscreen && (
           <div
             className="fixed inset-0 bg-gray-400/50 backdrop-blur-[32px] transition-opacity"

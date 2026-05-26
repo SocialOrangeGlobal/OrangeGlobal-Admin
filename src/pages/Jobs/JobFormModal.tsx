@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Modal } from "../../components/ui/modal";
 import Button from "../../components/ui/button/Button";
+import Select from "../../components/form/Select";
 
 interface JobFormModalProps {
   isOpen: boolean;
@@ -10,7 +11,7 @@ interface JobFormModalProps {
   saving: boolean;
 }
 
-type Step = "basics" | "details" | "perks";
+type Step = "basics" | "details" | "requirements" | "perks";
 
 const fieldBase =
   "h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm shadow-theme-xs " +
@@ -45,10 +46,10 @@ export default function JobFormModal({
   const [formData, setFormData] = useState({
     title: "",
     company: "",
-    category: "Technology",
+    category: "",
     location: "",
-    mode: "On-site",
-    type: "Full-time",
+    mode: "",
+    type: "",
     salary: "",
     vacancies: 1,
     description: "",
@@ -87,10 +88,10 @@ export default function JobFormModal({
       setFormData({
         title: "",
         company: "",
-        category: "Technology",
+        category: "",
         location: "",
-        mode: "On-site",
-        type: "Full-time",
+        mode: "",
+        type: "",
         salary: "",
         vacancies: 1,
         description: "",
@@ -120,15 +121,18 @@ export default function JobFormModal({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNext = () => {
+  const handleNext = (e?: any) => {
+    if (e && e.preventDefault) e.preventDefault();
     if (validateStep()) {
       if (step === "basics") setStep("details");
-      else if (step === "details") setStep("perks");
+      else if (step === "details") setStep("requirements");
+      else if (step === "requirements") setStep("perks");
     }
   };
 
   const handleBack = () => {
-    if (step === "perks") setStep("details");
+    if (step === "perks") setStep("requirements");
+    else if (step === "requirements") setStep("details");
     else if (step === "details") setStep("basics");
   };
 
@@ -164,8 +168,8 @@ export default function JobFormModal({
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent | any) => {
+    if (e && e.preventDefault) e.preventDefault();
     if (!validateStep()) return;
 
     if (step !== "perks") {
@@ -188,7 +192,7 @@ export default function JobFormModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      className="max-w-[720px] w-full p-6 sm:p-8"
+      className="max-w-[720px] w-full p-6 sm:p-8 "
     >
       <div className="flex flex-col h-full">
         {/* Header */}
@@ -202,10 +206,10 @@ export default function JobFormModal({
 
           {/* Stepper indicator */}
           <div className="flex items-center gap-3 sm:gap-4 mt-6">
-            {(["basics", "details", "perks"] as Step[]).map((s, i) => {
+            {(["basics", "details", "requirements", "perks"] as Step[]).map((s, i) => {
               const isActive = step === s;
               const isPast =
-                (["basics", "details", "perks"] as Step[]).indexOf(step) > i;
+                (["basics", "details", "requirements", "perks"] as Step[]).indexOf(step) > i;
               return (
                 <div key={s} className="flex items-center flex-1">
                   <div
@@ -222,9 +226,9 @@ export default function JobFormModal({
                     className={`ml-2 text-xs font-medium hidden sm:inline capitalize ${isActive ? "text-brand-500 font-bold" : "text-gray-500"
                       }`}
                   >
-                    {s === "perks" ? "Requirements & Perks" : s}
+                    {s === "perks" ? "Benefits" : s === "requirements" ? "Requirements" : s}
                   </span>
-                  {i < 2 && (
+                  {i < 3 && (
                     <div className="flex-1 h-[2px] bg-gray-200 dark:bg-gray-800 ml-4 hidden sm:block" />
                   )}
                 </div>
@@ -234,7 +238,7 @@ export default function JobFormModal({
         </div>
 
         {/* Content Form */}
-        <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
+        <form onSubmit={(e) => { e.preventDefault(); handleSubmit(e); }} className="flex-1 flex flex-col min-h-[400px]">
           <div className="overflow-y-auto max-h-[480px] pr-1 scrollbar-thin flex-1 mb-6">
             {step === "basics" && (
               <div className="space-y-4 animate-fadeIn">
@@ -277,17 +281,11 @@ export default function JobFormModal({
                     <label className={labelBase}>
                       Job Category <span className="text-red-500">*</span>
                     </label>
-                    <select
-                      value={formData.category}
-                      onChange={(e) => updateFormData("category", e.target.value)}
-                      className={fieldBase}
-                    >
-                      {categories.map((cat) => (
-                        <option key={cat} value={cat}>
-                          {cat}
-                        </option>
-                      ))}
-                    </select>
+                    <Select
+                      options={categories.map(c => ({ value: c, label: c }))}
+                      defaultValue={formData.category}
+                      onChange={(value) => updateFormData("category", value)}
+                    />
                   </div>
 
                   <div>
@@ -314,32 +312,20 @@ export default function JobFormModal({
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <label className={labelBase}>Work Mode</label>
-                    <select
-                      value={formData.mode}
-                      onChange={(e) => updateFormData("mode", e.target.value)}
-                      className={fieldBase}
-                    >
-                      {workModes.map((m) => (
-                        <option key={m} value={m}>
-                          {m}
-                        </option>
-                      ))}
-                    </select>
+                    <Select
+                      options={workModes.map(m => ({ value: m, label: m }))}
+                      defaultValue={formData.mode}
+                      onChange={(value) => updateFormData("mode", value)}
+                    />
                   </div>
 
                   <div>
                     <label className={labelBase}>Position Type</label>
-                    <select
-                      value={formData.type}
-                      onChange={(e) => updateFormData("type", e.target.value)}
-                      className={fieldBase}
-                    >
-                      {positionTypes.map((t) => (
-                        <option key={t} value={t}>
-                          {t}
-                        </option>
-                      ))}
-                    </select>
+                    <Select
+                      options={positionTypes.map(t => ({ value: t, label: t }))}
+                      defaultValue={formData.type}
+                      onChange={(value) => updateFormData("type", value)}
+                    />
                   </div>
 
                   <div>
@@ -383,13 +369,13 @@ export default function JobFormModal({
               </div>
             )}
 
-            {step === "perks" && (
-              <div className="space-y-6 animate-fadeIn">
+            {step === "requirements" && (
+              <div className="space-y-4 animate-fadeIn">
                 {/* Requirements */}
                 <div>
                   <div className="flex justify-between items-center mb-2">
                     <label className="text-sm font-semibold text-gray-800 dark:text-white">
-                      Key Requirements
+                      Job Requirements
                     </label>
                     <button
                       type="button"
@@ -422,6 +408,11 @@ export default function JobFormModal({
                     ))}
                   </div>
                 </div>
+              </div>
+            )}
+
+            {step === "perks" && (
+              <div className="space-y-4 animate-fadeIn">
 
                 {/* Benefits */}
                 <div>
@@ -501,13 +492,7 @@ export default function JobFormModal({
             </div>
 
             <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onClose}
-                disabled={saving}
-                className="px-5 py-2.5 rounded-lg border-gray-200 dark:border-gray-800 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800"
-              >
+              <Button type="button" variant="outline" onClick={onClose} className="px-5 py-2.5 rounded-lg border-gray-200 dark:border-gray-800 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800">
                 Cancel
               </Button>
 
@@ -516,12 +501,15 @@ export default function JobFormModal({
                   key="submit-btn"
                   type="submit"
                   disabled={saving}
+                  onClick={handleSubmit}
                   className="px-6 py-2.5 rounded-lg bg-brand-500 text-white font-semibold flex items-center justify-center gap-1.5 shadow-md shadow-brand-500/10"
                 >
                   {saving ? (
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   ) : job ? (
                     "Save Changes"
+                  ) : formData.isPublished ? (
+                    "Publish Job"
                   ) : (
                     "Post Job"
                   )}

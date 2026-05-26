@@ -348,12 +348,6 @@ export default function UserViewModal({
             )}
           </div>
           
-          {/* Footer buttons */}
-          <div className="mt-6 flex justify-end border-t border-gray-100 pt-4 dark:border-gray-800">
-            <Button size="sm" variant="outline" onClick={onClose}>
-              Close
-            </Button>
-          </div>
         </div>
       )}
     </Modal>

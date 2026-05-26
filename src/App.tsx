@@ -15,6 +15,7 @@ import Calendar from "./pages/Calendar";
 import BasicTables from "./pages/Tables/BasicTables";
 import UsersPage from "./pages/Users/UsersPage";
 import JobsPage from "./pages/Jobs/JobsPage";
+import ApplicationsPage from "./pages/Jobs/ApplicationsPage";
 import FormElements from "./pages/Forms/FormElements";
 import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
@@ -50,6 +51,7 @@ export default function App() {
 
               {/* Jobs */}
               <Route path="/jobs" element={<JobsPage />} />
+              <Route path="/jobs/:id/applications" element={<ApplicationsPage />} />
 
               {/* Ui Elements */}
               <Route path="/alerts" element={<Alerts />} />

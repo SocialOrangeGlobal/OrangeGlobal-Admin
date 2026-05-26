@@ -68,11 +68,6 @@ export default function DocPreviewModal({
           )}
         </div>
 
-        <div className="mt-4 flex justify-end">
-          <Button size="sm" variant="outline" onClick={onClose}>
-            Close Preview
-          </Button>
-        </div>
       </div>
     </Modal>
   );

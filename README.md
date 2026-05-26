@@ -6,6 +6,19 @@ A secure, comprehensive administrative dashboard for the Orange Global platform.
 
 The Orange Global Admin Panel provides internal staff and administrators with the tools necessary to manage users, jobs, applications, and system configurations. It is built for performance, security, and ease of use.
 
+## ✨ Key Features & Recent Updates
+
+- **Jobs & Applicant Management Hub**: A unified workspace featuring two core tabs:
+  - **Job Postings**: Manage vacancies, publish drafts, and track hiring metrics.
+  - **Applied Jobs**: A global view of all candidate applications across all jobs with dynamic filtering, search, and pagination.
+- **Advanced Applicant Tracking**: 
+  - View AI-generated ATS Match Scores directly in the application tables.
+  - Seamlessly change application statuses.
+  - **Interview Scheduling Module**: Set interview dates, types (Video/In-person), generate meeting links, and leave internal recruiter feedback.
+  - View Offer Details and track final candidate decisions.
+- **Document Preview**: Built-in document viewer modal to read candidate resumes seamlessly within the browser.
+- **User Management**: Comprehensive talent user tables allowing admins to manage accounts, edit profiles, and view uploaded portfolios.
+
 ## 🛠️ Technology Stack
 
 * **Framework:** React 19 with Vite
