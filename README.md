@@ -8,6 +8,7 @@ The Orange Global Admin Panel provides internal staff and administrators with th
 
 ## ✨ Key Features & Recent Updates
 
+- **Dynamic Dashboard**: Interactive overview displaying total candidates, employers, active job ratios, and application pipeline distribution charts using real-time API metrics.
 - **Jobs & Applicant Management Hub**: A unified workspace featuring two core tabs:
   - **Job Postings**: Manage vacancies, publish drafts, and track hiring metrics.
   - **Applied Jobs**: A global view of all candidate applications across all jobs with dynamic filtering, search, and pagination.
