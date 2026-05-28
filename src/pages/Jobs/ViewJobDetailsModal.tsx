@@ -57,10 +57,10 @@ export default function ViewJobDetailsModal({
                 {job.company} • {job.category}
               </p>
             </div>
+            <Badge size="sm" color={job.isPublished ? "success" : "warning"}>
+              {job.isPublished ? "Published" : "Draft"}
+            </Badge>
           </div>
-          <Badge size="sm" color={job.isPublished ? "success" : "warning"}>
-            {job.isPublished ? "Published" : "Draft"}
-          </Badge>
         </div>
 
         {/* Content */}
