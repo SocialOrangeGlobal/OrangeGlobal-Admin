@@ -14,6 +14,7 @@ import {
   TalentUsers,
   EmployerUsers,
   BriefcaseIcon,
+  ChatIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 import SidebarWidget from "./SidebarWidget";
@@ -45,6 +46,11 @@ const navItems: NavItem[] = [
     name: "Jobs",
     icon: <BriefcaseIcon />,
     path: "/jobs",
+  },
+  {
+    name: "Messages",
+    icon: <ChatIcon />,
+    path: "/messages",
   },
   // {
   //   name: "Forms",

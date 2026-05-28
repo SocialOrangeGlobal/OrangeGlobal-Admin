@@ -728,7 +728,7 @@ export default function JobsPage() {
             )}
           </div>
         </>
-      )}
+            )}
 
       {/* CREATE & EDIT FORM MODAL */}
       <JobFormModal

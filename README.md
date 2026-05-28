@@ -8,6 +8,8 @@ The Orange Global Admin Panel provides internal staff and administrators with th
 
 ## ✨ Key Features & Recent Updates
 
+- **Admin Chat & Messaging Hub**: Features a fully integrated, real-time message console (`MessagePage`) supporting instantaneous client-candidate-admin text communication and instant customer service workflows.
+- **Real-Time Notification Center**: Added a sleek glassmorphic header notification dropdown and specialized `/notifications` alerts panel, integrated via Socket.io for dynamic instant alerts on applicant updates and interview states.
 - **Dynamic Dashboard**: Interactive overview displaying total candidates, employers, active job ratios, and application pipeline distribution charts using real-time API metrics.
 - **Jobs & Applicant Management Hub**: A unified workspace featuring two core tabs:
   - **Job Postings**: Manage vacancies, publish drafts, and track hiring metrics.
