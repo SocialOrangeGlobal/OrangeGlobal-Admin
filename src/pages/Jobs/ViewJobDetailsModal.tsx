@@ -34,14 +34,29 @@ export default function ViewJobDetailsModal({
     >
       <div className="flex flex-col h-full">
         {/* Header */}
-        <div className="mb-6 flex justify-start items-start">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-              {job.title}
-            </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              {job.company} • {job.category}
-            </p>
+        <div className="mb-6 flex justify-between items-start gap-4">
+          <div className="flex items-center gap-4">
+            <div className="h-16 w-16 shrink-0 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white flex items-center justify-center shadow-md overflow-hidden animate-fadeIn">
+              {job.companyLogo ? (
+                <img
+                  src={job.companyLogo}
+                  alt={`${job.company} Logo`}
+                  className="h-full w-full object-contain p-2"
+                />
+              ) : (
+                <span className="text-gray-400 font-bold text-xl uppercase">
+                  {job.company.substring(0, 2)}
+                </span>
+              )}
+            </div>
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight">
+                {job.title}
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                {job.company} • {job.category}
+              </p>
+            </div>
           </div>
           <Badge size="sm" color={job.isPublished ? "success" : "warning"}>
             {job.isPublished ? "Published" : "Draft"}

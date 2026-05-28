@@ -440,10 +440,25 @@ export default function JobsPage() {
                         className="hover:bg-gray-50/50 dark:hover:bg-white/[0.01] cursor-pointer"
                       >
                         <td className="px-5 py-4">
-                          <div>
-                            <span className="block font-bold text-gray-800 dark:text-white/90 text-sm sm:text-base">{item.title}</span>
-                            <span className="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">{item.company}</span>
-                            <span className="inline-block text-[10px] bg-brand-50 text-brand-600 px-2 py-0.5 rounded-full dark:bg-brand-950/20 dark:text-brand-400 mt-1 font-medium">{item.category}</span>
+                          <div className="flex items-center gap-3">
+                            <div className="h-11 w-11 shrink-0 rounded-lg border border-gray-100 dark:border-gray-800 bg-white flex items-center justify-center shadow-sm overflow-hidden">
+                              {item.companyLogo ? (
+                                <img
+                                  src={item.companyLogo}
+                                  alt={`${item.company} Logo`}
+                                  className="h-full w-full object-contain p-1"
+                                />
+                              ) : (
+                                <span className="text-gray-400 font-bold text-xs uppercase">
+                                  {item.company.substring(0, 2)}
+                                </span>
+                              )}
+                            </div>
+                            <div>
+                              <span className="block font-bold text-gray-800 dark:text-white/90 text-sm sm:text-base">{item.title}</span>
+                              <span className="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">{item.company}</span>
+                              <span className="inline-block text-[10px] bg-brand-50 text-brand-600 px-2 py-0.5 rounded-full dark:bg-brand-950/20 dark:text-brand-400 mt-1 font-medium">{item.category}</span>
+                            </div>
                           </div>
                         </td>
                         <td className="px-5 py-4 text-theme-sm text-gray-700 dark:text-gray-300">

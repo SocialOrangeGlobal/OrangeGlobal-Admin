@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Modal } from "../../components/ui/modal";
 import Button from "../../components/ui/button/Button";
 import Select from "../../components/form/Select";
+import { Loader2, Upload } from "lucide-react";
+import { uploadFile } from "../../lib/storage";
 
 interface JobFormModalProps {
   isOpen: boolean;
@@ -43,6 +45,9 @@ export default function JobFormModal({
   saving
 }: JobFormModalProps) {
   const [step, setStep] = useState<Step>("basics");
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+
   const [formData, setFormData] = useState({
     title: "",
     company: "",
@@ -56,7 +61,25 @@ export default function JobFormModal({
     requirements: [""] as string[],
     benefits: [""] as string[],
     isPublished: true,
+    companyLogo: "",
   });
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingLogo(true);
+    try {
+      const timestamp = Date.now();
+      const fileName = `logo-${timestamp}-${file.name.replace(/\s+/g, '-')}`;
+      const url = await uploadFile(file, 'company-logo', fileName);
+      updateFormData("companyLogo", url);
+    } catch (err: any) {
+      console.error("Failed to upload logo:", err);
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -83,6 +106,7 @@ export default function JobFormModal({
             ? JSON.parse(job.benefits)
             : [""],
         isPublished: job.isPublished !== false,
+        companyLogo: job.companyLogo || "",
       });
     } else {
       setFormData({
@@ -98,6 +122,7 @@ export default function JobFormModal({
         requirements: [""],
         benefits: [""],
         isPublished: true,
+        companyLogo: "",
       });
     }
     setStep("basics");
@@ -303,6 +328,84 @@ export default function JobFormModal({
                       <p className="text-xs text-red-500 mt-1 font-medium">{errors.location}</p>
                     )}
                   </div>
+                </div>
+
+                <div>
+                  <label className={labelBase}>
+                    Company Logo <span className="text-xs text-gray-400 font-normal">(Optional)</span>
+                  </label>
+                  
+                  <input
+                    type="file"
+                    ref={logoInputRef}
+                    onChange={handleLogoUpload}
+                    accept="image/*"
+                    className="hidden"
+                  />
+
+                  {formData.companyLogo ? (
+                    <div className="flex items-center gap-6 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/30 animate-fadeIn">
+                      <div className="relative h-20 w-20 shrink-0 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 bg-white flex items-center justify-center shadow-sm">
+                        {uploadingLogo ? (
+                          <div className="absolute inset-0 bg-white/80 dark:bg-gray-950/80 flex items-center justify-center backdrop-blur-xs">
+                            <Loader2 className="w-5 h-5 text-brand-500 animate-spin" />
+                          </div>
+                        ) : null}
+                        <img
+                          src={formData.companyLogo}
+                          alt="Company Logo Preview"
+                          className="h-full w-full object-contain p-1.5"
+                        />
+                      </div>
+                      
+                      <div className="space-y-1.5">
+                        <h4 className="text-sm font-semibold text-gray-800 dark:text-white">Logo Uploaded</h4>
+                        <p className="text-xs text-gray-400">Successfully loaded and stored</p>
+                        
+                        <div className="flex items-center gap-3 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => logoInputRef.current?.click()}
+                            className="text-xs font-bold text-brand-500 hover:text-brand-600 transition"
+                          >
+                            Replace
+                          </button>
+                          <span className="text-gray-300 dark:text-gray-700">|</span>
+                          <button
+                            type="button"
+                            onClick={() => updateFormData("companyLogo", "")}
+                            className="text-xs font-bold text-red-500 hover:text-red-600 transition"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => logoInputRef.current?.click()}
+                      className="border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-xl p-8 text-center cursor-pointer hover:bg-gray-50/50 dark:hover:bg-gray-800/20 hover:border-brand-300 dark:hover:border-brand-500/30 transition-all flex flex-col items-center justify-center gap-3"
+                    >
+                      {uploadingLogo ? (
+                        <div className="h-10 w-10 rounded-xl bg-brand-50 dark:bg-brand-950/20 flex items-center justify-center text-brand-500">
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        </div>
+                      ) : (
+                        <div className="h-10 w-10 rounded-xl bg-gray-50 dark:bg-gray-800/40 flex items-center justify-center text-gray-400 group-hover:text-brand-500">
+                          <Upload className="w-5 h-5" />
+                        </div>
+                      )}
+                      
+                      <div>
+                        <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                          {uploadingLogo ? "Uploading Company Logo..." : "Upload Company Logo"}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          Drag & drop or click to choose – JPG, PNG or WEBP (Max 2MB)
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

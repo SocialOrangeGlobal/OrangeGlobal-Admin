@@ -41,14 +41,29 @@ export default function ApplicationViewModal({
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-[800px] w-full p-6 sm:p-8">
       <div className="flex flex-col h-full">
         {/* Header */}
-        <div className="mb-6 flex justify-start gap-4 items-start">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              Application Details
-            </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              For <span className="font-semibold text-gray-800 dark:text-gray-200">{application.job?.title || "Job"}</span> at {application.job?.company || "Company"}
-            </p>
+        <div className="mb-6 flex justify-between items-start gap-4">
+          <div className="flex items-center gap-4">
+            <div className="h-14 w-14 shrink-0 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white flex items-center justify-center shadow-md overflow-hidden animate-fadeIn">
+              {application.job?.companyLogo ? (
+                <img
+                  src={application.job.companyLogo}
+                  alt={`${application.job?.company || "Company"} Logo`}
+                  className="h-full w-full object-contain p-2"
+                />
+              ) : (
+                <span className="text-gray-400 font-bold text-lg uppercase">
+                  {(application.job?.company || "CO").substring(0, 2)}
+                </span>
+              )}
+            </div>
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                Application Details
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                For <span className="font-semibold text-gray-800 dark:text-gray-200">{application.job?.title || "Job"}</span> at {application.job?.company || "Company"}
+              </p>
+            </div>
           </div>
           <Badge size="md" color={getStatusColor(application.status)}>
             {application.status.replace(/_/g, ' ')}
