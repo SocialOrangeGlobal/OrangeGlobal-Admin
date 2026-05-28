@@ -2,7 +2,6 @@ import { useEffect, useState, useCallback } from "react";
 import PageBreadcrumb from "../components/common/PageBreadCrumb";
 import PageMeta from "../components/common/PageMeta";
 import { useAuth } from "../context/AuthContext";
-import Badge from "../components/ui/badge/Badge";
 import Button from "../components/ui/button/Button";
 import PageLoader from "../components/ui/PageLoader";
 import { Modal } from "../components/ui/modal";
