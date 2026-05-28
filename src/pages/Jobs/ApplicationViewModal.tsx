@@ -1,9 +1,10 @@
+import { useState } from "react";
 import { Modal } from "../../components/ui/modal";
 import Badge from "../../components/ui/badge/Badge";
 import {
   User, FileText, Calendar, ShieldCheck, Mail, Target, Briefcase,
   GraduationCap, Building, Globe, Clock, Award,
-  BookOpen, Download, ExternalLink
+  BookOpen, Download, ExternalLink, Eye, X, ZoomIn
 } from "lucide-react";
 
 interface ApplicationViewModalProps {
@@ -17,6 +18,8 @@ export default function ApplicationViewModal({
   onClose,
   application,
 }: ApplicationViewModalProps) {
+  const [selectedDoc, setSelectedDoc] = useState<{ url: string; title: string } | null>(null);
+
   if (!application) return null;
 
   const getStatusColor = (status: string) => {
@@ -476,42 +479,87 @@ export default function ApplicationViewModal({
             </div>
           )}
 
-          {/* 9. Uploaded Credentials & Support Documents */}
+          {/* 9. Uploaded Credentials & Support Documents — Inline Preview */}
           <div>
             <h3 className="text-xs font-bold text-gray-950 dark:text-white mb-4 uppercase tracking-wider flex items-center gap-2">
               <BookOpen className="w-4 h-4 text-brand-500" />
-              Uploaded Supporting Credentials & Documents ({documents.length})
+              Uploaded Supporting Credentials &amp; Documents ({documents.length})
             </h3>
             {documents.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {documents.map((doc, idx) => (
-                  <a
-                    key={idx}
-                    href={doc.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between p-4 bg-gray-50/50 hover:bg-brand-50/40 dark:bg-gray-900/20 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-brand-200 dark:hover:border-brand-900/30 transition-all group"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700 text-brand-500 group-hover:scale-105 transition-transform shrink-0">
-                        <FileText className="w-5 h-5 text-brand-500" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                {documents.map((doc, idx) => {
+                  const isImage = /\.(jpeg|jpg|gif|png)(\?|$)/i.test(doc.url);
+                  const isPdf = /\.pdf(\?|$)/i.test(doc.url);
+                  return (
+                    <div
+                      key={idx}
+                      className="group flex flex-col rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all"
+                    >
+                      {/* Document inline preview area */}
+                      <div className="relative bg-gray-100 dark:bg-gray-800 h-44 flex items-center justify-center overflow-hidden">
+                        {isImage ? (
+                          <img
+                            src={doc.url}
+                            alt={doc.name}
+                            className="w-full h-full object-contain p-1"
+                          />
+                        ) : isPdf ? (
+                          <iframe
+                            src={doc.url}
+                            title={doc.name}
+                            className="w-full h-full border-0 pointer-events-none"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center gap-2 text-gray-400 dark:text-gray-600">
+                            <FileText className="w-12 h-12" />
+                            <span className="text-[10px] font-bold uppercase tracking-wider">{doc.type}</span>
+                          </div>
+                        )}
+                        {/* Hover expand overlay */}
+                        <button
+                          onClick={() => setSelectedDoc({ url: doc.url, title: doc.name })}
+                          className="absolute inset-0 bg-black/0 group-hover:bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                        >
+                          <span className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-900 text-gray-800 dark:text-white rounded-xl text-xs font-bold shadow-lg">
+                            <ZoomIn className="w-4 h-4" /> View Document
+                          </span>
+                        </button>
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-gray-800 dark:text-gray-250 truncate group-hover:underline">
-                          {doc.name}
-                        </p>
-                        <p className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">
-                          {doc.type}
-                        </p>
+
+                      {/* Card footer: name + actions */}
+                      <div className="flex items-center justify-between p-3.5 border-t border-gray-100 dark:border-gray-800 gap-2">
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-gray-800 dark:text-gray-200 truncate">{doc.name}</p>
+                          <p className="text-[10px] text-gray-400 font-medium">{doc.type}</p>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            onClick={() => setSelectedDoc({ url: doc.url, title: doc.name })}
+                            className="p-2 rounded-lg bg-brand-50 dark:bg-brand-950/20 text-brand-500 hover:bg-brand-100 transition-colors"
+                            title="View"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </button>
+                          <a
+                            href={doc.url}
+                            download
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                            title="Download"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                          </a>
+                        </div>
                       </div>
                     </div>
-                    <Download className="w-4 h-4 text-gray-400 group-hover:text-brand-500 transition-colors shrink-0" />
-                  </a>
-                ))}
+                  );
+                })}
               </div>
             ) : (
-              <div className="p-4 bg-gray-50 rounded-xl border border-gray-200/50 text-center text-xs text-gray-400 italic">
-                No supporting certificates or document uploads exist for this candidate profile.
+              <div className="p-6 bg-gray-50 dark:bg-gray-900/30 rounded-2xl border border-gray-200/50 dark:border-gray-800 text-center">
+                <FileText className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+                <p className="text-xs text-gray-400 italic">No supporting certificates or document uploads exist for this candidate profile.</p>
               </div>
             )}
           </div>
@@ -595,6 +643,74 @@ export default function ApplicationViewModal({
 
         </div>
       </div>
+
+      {/* ── Full-screen Document Viewer Overlay ── */}
+      {selectedDoc && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="bg-white dark:bg-gray-900 rounded-[2rem] w-full max-w-4xl max-h-[92vh] overflow-hidden flex flex-col shadow-2xl">
+            {/* Viewer header */}
+            <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-800 gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-950/20 flex items-center justify-center text-brand-500 shrink-0">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white truncate">{selectedDoc.title}</h3>
+                  <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Document Preview</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <a
+                  href={selectedDoc.url}
+                  download
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-xl text-xs font-bold transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5" /> Download
+                </a>
+                <button
+                  onClick={() => setSelectedDoc(null)}
+                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-all"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Viewer content */}
+            <div className="flex-1 overflow-auto bg-gray-50 dark:bg-gray-800/40 p-4 sm:p-6 min-h-[50vh]">
+              {/\.(jpeg|jpg|gif|png)(\?|$)/i.test(selectedDoc.url) ? (
+                <img
+                  src={selectedDoc.url}
+                  alt={selectedDoc.title}
+                  className="max-w-full rounded-2xl shadow-sm mx-auto block"
+                />
+              ) : /\.pdf(\?|$)/i.test(selectedDoc.url) ? (
+                <iframe
+                  src={selectedDoc.url}
+                  title={selectedDoc.title}
+                  className="w-full h-[55vh] sm:h-[65vh] rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700"
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center h-[50vh] text-center gap-4">
+                  <FileText className="w-16 h-16 text-gray-300" />
+                  <p className="text-gray-500 dark:text-gray-400 font-medium text-sm">Preview not available for this file type.</p>
+                  <a
+                    href={selectedDoc.url}
+                    download
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-6 py-3 bg-brand-500 text-white rounded-xl font-bold text-sm shadow-md hover:bg-brand-600 transition-all"
+                  >
+                    <Download className="w-4 h-4" /> Download to View
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </Modal>
   );
 }
