@@ -129,6 +129,9 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
             if (prev.some((n) => n.id === notif.id)) return prev;
             return [notif, ...prev];
           });
+        } else if (msg.event === 'new_chat_reply' && msg.data) {
+          // Dispatch window event for live chat listener
+          window.dispatchEvent(new CustomEvent('ws_new_chat_reply', { detail: msg.data }));
         }
       } catch {
         // ignore parse errors

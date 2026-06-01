@@ -48,7 +48,7 @@ const navItems: NavItem[] = [
     path: "/jobs",
   },
   {
-    name: "Messages",
+    name: "Enquiries",
     icon: <ChatIcon />,
     path: "/messages",
   },
