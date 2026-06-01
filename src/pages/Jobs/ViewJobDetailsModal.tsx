@@ -66,13 +66,20 @@ export default function ViewJobDetailsModal({
         {/* Content */}
         <div className="overflow-y-auto max-h-[500px] pr-2 custom-scrollbar flex-1 mb-6 space-y-6">
           {/* Quick Info Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 bg-gray-50 dark:bg-gray-800/40 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 bg-gray-50 dark:bg-gray-800/40 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 <span className="text-[11px] font-semibold uppercase tracking-wider">Location</span>
               </div>
               <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{job.location}</p>
+            </div>
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                <span className="text-[11px] font-semibold uppercase tracking-wider">Industry</span>
+              </div>
+              <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{job.industry || "N/A"}</p>
             </div>
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">

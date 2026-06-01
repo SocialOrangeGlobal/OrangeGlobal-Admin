@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 
@@ -26,6 +26,11 @@ const Select: React.FC<SelectProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [internalValue, setInternalValue] = useState<string>(defaultValue);
+
+  // Re-sync internalValue when defaultValue changes (e.g. editing a different job)
+  useEffect(() => {
+    setInternalValue(defaultValue);
+  }, [defaultValue]);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const selectedValue = value !== undefined ? value : internalValue;

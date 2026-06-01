@@ -457,7 +457,14 @@ export default function JobsPage() {
                             <div>
                               <span className="block font-bold text-gray-800 dark:text-white/90 text-sm sm:text-base">{item.title}</span>
                               <span className="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">{item.company}</span>
-                              <span className="inline-block text-[10px] bg-brand-50 text-brand-600 px-2 py-0.5 rounded-full dark:bg-brand-950/20 dark:text-brand-400 mt-1 font-medium">{item.category}</span>
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                <span className="inline-block text-[10px] bg-brand-50 text-brand-600 px-2 py-0.5 rounded-full dark:bg-brand-950/20 dark:text-brand-400 font-medium">{item.category}</span>
+                                {item.industry && (
+                                  <span className="inline-block text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full dark:bg-blue-950/20 dark:text-blue-400 font-medium">
+                                    {item.industry}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </td>

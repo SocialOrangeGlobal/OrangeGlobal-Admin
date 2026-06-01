@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Modal } from "../../components/ui/modal";
 import Button from "../../components/ui/button/Button";
 import Select from "../../components/form/Select";
-import { Loader2, Upload } from "lucide-react";
+import { Loader2, Upload, Link as LinkIcon } from "lucide-react";
 import { uploadFile } from "../../lib/storage";
 
 interface JobFormModalProps {
@@ -34,6 +34,29 @@ const categories = [
   "Other"
 ];
 
+const industries = [
+  "Technology",
+  "Finance",
+  "Healthcare",
+  "Education",
+  "Engineering",
+  "Legal",
+  "Marketing",
+  "Retail",
+  "Hospitality",
+  "Manufacturing",
+  "Construction",
+  "Government",
+  "Telecommunications",
+  "Energy",
+  "Real Estate",
+  "Transport & Logistics",
+  "Media & Entertainment",
+  "Agriculture",
+  "Non-Profit",
+  "Other"
+];
+
 const workModes = ["Remote", "Hybrid", "On-site"];
 const positionTypes = ["Full-time", "Part-time", "Contract", "Temporary", "Internship"];
 
@@ -47,10 +70,12 @@ export default function JobFormModal({
   const [step, setStep] = useState<Step>("basics");
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
+  const [logoInputMode, setLogoInputMode] = useState<'upload' | 'url'>('upload');
 
   const [formData, setFormData] = useState({
     title: "",
     company: "",
+    industry: "",
     category: "",
     location: "",
     mode: "",
@@ -88,7 +113,8 @@ export default function JobFormModal({
       setFormData({
         title: job.title || "",
         company: job.company || "",
-        category: job.category || "Technology",
+        industry: job.industry || "",
+        category: job.category || "",
         location: job.location || "",
         mode: job.mode || "On-site",
         type: job.type || "Full-time",
@@ -108,10 +134,17 @@ export default function JobFormModal({
         isPublished: job.isPublished !== false,
         companyLogo: job.companyLogo || "",
       });
+      // If the existing logo looks like a URL (not an uploaded file path), default to URL mode
+      if (job.companyLogo && (job.companyLogo.startsWith('http://') || job.companyLogo.startsWith('https://'))) {
+        setLogoInputMode('url');
+      } else {
+        setLogoInputMode('upload');
+      }
     } else {
       setFormData({
         title: "",
         company: "",
+        industry: "",
         category: "",
         location: "",
         mode: "",
@@ -124,6 +157,7 @@ export default function JobFormModal({
         isPublished: true,
         companyLogo: "",
       });
+      setLogoInputMode('upload');
     }
     setStep("basics");
     setErrors({});
@@ -304,6 +338,18 @@ export default function JobFormModal({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className={labelBase}>
+                      Industry <span className="text-xs text-gray-400 font-normal">(Optional)</span>
+                    </label>
+                    <Select
+                      options={industries.map(i => ({ value: i, label: i }))}
+                      placeholder="Select industry"
+                      defaultValue={formData.industry}
+                      onChange={(value) => updateFormData("industry", value)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className={labelBase}>
                       Job Category <span className="text-red-500">*</span>
                     </label>
                     <Select
@@ -312,29 +358,55 @@ export default function JobFormModal({
                       onChange={(value) => updateFormData("category", value)}
                     />
                   </div>
+                </div>
 
-                  <div>
-                    <label className={labelBase}>
-                      Location <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.location}
-                      onChange={(e) => updateFormData("location", e.target.value)}
-                      placeholder="e.g. Sydney, NSW, Australia"
-                      className={`${fieldBase} ${errors.location ? "border-red-500 focus:ring-red-500/10" : ""}`}
-                    />
-                    {errors.location && (
-                      <p className="text-xs text-red-500 mt-1 font-medium">{errors.location}</p>
-                    )}
-                  </div>
+                <div>
+                  <label className={labelBase}>
+                    Location <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.location}
+                    onChange={(e) => updateFormData("location", e.target.value)}
+                    placeholder="e.g. Sydney, NSW, Australia"
+                    className={`${fieldBase} ${errors.location ? "border-red-500 focus:ring-red-500/10" : ""}`}
+                  />
+                  {errors.location && (
+                    <p className="text-xs text-red-500 mt-1 font-medium">{errors.location}</p>
+                  )}
                 </div>
 
                 <div>
                   <label className={labelBase}>
                     Company Logo <span className="text-xs text-gray-400 font-normal">(Optional)</span>
                   </label>
-                  
+
+                  {/* Logo Input Mode Tabs */}
+                  <div className="flex items-center gap-1 mb-3 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg w-fit">
+                    <button
+                      type="button"
+                      onClick={() => setLogoInputMode('upload')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${logoInputMode === 'upload'
+                        ? 'bg-white dark:bg-gray-900 text-brand-500 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                        }`}
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      Upload File
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLogoInputMode('url')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${logoInputMode === 'url'
+                        ? 'bg-white dark:bg-gray-900 text-brand-500 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                        }`}
+                    >
+                      <LinkIcon className="w-3.5 h-3.5" />
+                      Enter URL
+                    </button>
+                  </div>
+
                   <input
                     type="file"
                     ref={logoInputRef}
@@ -343,6 +415,7 @@ export default function JobFormModal({
                     className="hidden"
                   />
 
+                  {/* Show logo preview if already set */}
                   {formData.companyLogo ? (
                     <div className="flex items-center gap-6 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/30 animate-fadeIn">
                       <div className="relative h-20 w-20 shrink-0 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 bg-white flex items-center justify-center shadow-sm">
@@ -355,21 +428,35 @@ export default function JobFormModal({
                           src={formData.companyLogo}
                           alt="Company Logo Preview"
                           className="h-full w-full object-contain p-1.5"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '';
+                            (e.target as HTMLImageElement).alt = 'Invalid URL';
+                          }}
                         />
                       </div>
                       
-                      <div className="space-y-1.5">
-                        <h4 className="text-sm font-semibold text-gray-800 dark:text-white">Logo Uploaded</h4>
-                        <p className="text-xs text-gray-400">Successfully loaded and stored</p>
+                      <div className="space-y-1.5 flex-1 min-w-0">
+                        <h4 className="text-sm font-semibold text-gray-800 dark:text-white">Logo Set</h4>
+                        <p className="text-xs text-gray-400 truncate">{formData.companyLogo}</p>
                         
                         <div className="flex items-center gap-3 pt-1">
-                          <button
-                            type="button"
-                            onClick={() => logoInputRef.current?.click()}
-                            className="text-xs font-bold text-brand-500 hover:text-brand-600 transition"
-                          >
-                            Replace
-                          </button>
+                          {logoInputMode === 'upload' ? (
+                            <button
+                              type="button"
+                              onClick={() => logoInputRef.current?.click()}
+                              className="text-xs font-bold text-brand-500 hover:text-brand-600 transition"
+                            >
+                              Replace
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => updateFormData("companyLogo", "")}
+                              className="text-xs font-bold text-brand-500 hover:text-brand-600 transition"
+                            >
+                              Change URL
+                            </button>
+                          )}
                           <span className="text-gray-300 dark:text-gray-700">|</span>
                           <button
                             type="button"
@@ -381,7 +468,7 @@ export default function JobFormModal({
                         </div>
                       </div>
                     </div>
-                  ) : (
+                  ) : logoInputMode === 'upload' ? (
                     <div
                       onClick={() => logoInputRef.current?.click()}
                       className="border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-xl p-8 text-center cursor-pointer hover:bg-gray-50/50 dark:hover:bg-gray-800/20 hover:border-brand-300 dark:hover:border-brand-500/30 transition-all flex flex-col items-center justify-center gap-3"
@@ -404,6 +491,23 @@ export default function JobFormModal({
                           Drag & drop or click to choose – JPG, PNG or WEBP (Max 2MB)
                         </p>
                       </div>
+                    </div>
+                  ) : (
+                    /* URL Input Mode */
+                    <div className="space-y-2">
+                      <div className="relative">
+                        <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                          type="url"
+                          value={formData.companyLogo}
+                          onChange={(e) => updateFormData("companyLogo", e.target.value)}
+                          placeholder="https://example.com/company-logo.png"
+                          className={`${fieldBase} !pl-10`}
+                        />
+                      </div>
+                      <p className="text-[11px] text-gray-400">
+                        Paste a direct URL to a company logo image (JPG, PNG, WEBP)
+                      </p>
                     </div>
                   )}
                 </div>
