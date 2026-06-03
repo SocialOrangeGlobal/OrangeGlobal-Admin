@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Modal } from "../../components/ui/modal";
 import Badge from "../../components/ui/badge/Badge";
 
@@ -30,7 +31,122 @@ export default function UserViewModal({
   onImageError,
   onViewDoc
 }: UserViewModalProps) {
-  
+  const [downloadingAll, setDownloadingAll] = useState(false);
+
+  const getSafeDocUrl = (url: string | null | undefined): string => {
+    if (!url) return "";
+    try {
+      const parsed = new URL(url);
+      const pathname = parsed.pathname;
+      const publicIndex = pathname.indexOf('/public/');
+      if (publicIndex !== -1) {
+        const publicPath = pathname.substring(publicIndex + 8);
+        const slashIndex = publicPath.indexOf('/');
+        if (slashIndex !== -1) {
+          const bucket = publicPath.substring(0, slashIndex);
+          const key = publicPath.substring(slashIndex + 1);
+          if (key.includes('%')) {
+            const doubleEncodedKey = key.replace(/%([0-9A-Fa-f]{2})/g, '%25$1');
+            parsed.pathname = pathname.substring(0, publicIndex + 8) + bucket + '/' + doubleEncodedKey;
+            return parsed.toString();
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Error formatting safe doc URL:", e);
+    }
+    return url;
+  };
+
+  const handleDownloadAll = async () => {
+    if (!selectedUser) return;
+    setDownloadingAll(true);
+
+    const docs = [
+      { url: selectedUser.resumeUrl, title: "Resume" },
+      { url: selectedUser.passportUrl, title: "Passport" },
+      { url: selectedUser.visaUrl, title: "Visa" },
+      { url: selectedUser.eduCertUrl, title: "Education_Certificate" },
+      { url: selectedUser.empCertUrl, title: "Employment_Certificate" },
+      { url: selectedUser.englishTestUrl, title: "English_Test" },
+      { url: selectedUser.licenceUrl, title: "Licence" }
+    ].filter(d => d.url);
+
+    try {
+      if ('showDirectoryPicker' in window) {
+        // Ask the user to select the destination directory once (Single permission request)
+        const parentHandle = await (window as any).showDirectoryPicker();
+
+        // Create a subfolder named after the candidate (cleaning up illegal folder characters)
+        const folderName = selectedUser.fullName.replace(/[^a-zA-Z0-9_\-\s]/g, '_').trim();
+        const userFolderHandle = await parentHandle.getDirectoryHandle(folderName, { create: true });
+
+        for (const doc of docs) {
+          const safeUrl = getSafeDocUrl(doc.url);
+          const response = await fetch(safeUrl);
+          const blob = await response.blob();
+
+          const ext = doc.url.split('?')[0].split('.').pop() || 'pdf';
+          const fileName = `${doc.title}.${ext}`;
+
+          // Create the file handle inside the candidate's folder and write the blob
+          const fileHandle = await userFolderHandle.getFileHandle(fileName, { create: true });
+          const writable = await fileHandle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+        }
+      } else {
+        // Fallback for Safari/Firefox: Download sequentially to default Downloads directory (using blob)
+        for (const doc of docs) {
+          const safeUrl = getSafeDocUrl(doc.url);
+          const response = await fetch(safeUrl);
+          const blob = await response.blob();
+          const blobUrl = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = blobUrl;
+
+          const ext = doc.url.split('?')[0].split('.').pop() || 'pdf';
+          link.download = `${selectedUser.fullName.replace(/[^a-zA-Z0-9_\-]/g, '_')}_${doc.title}.${ext}`;
+
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(blobUrl);
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+    } catch (error) {
+      console.warn("Directory API download failed or canceled, falling back to standard browser downloads:", error);
+      // Robust Fallback: Download using direct links sequentially. Does not suffer from CORS issues.
+      for (const doc of docs) {
+        const safeUrl = getSafeDocUrl(doc.url);
+        const link = document.createElement('a');
+        link.href = safeUrl;
+        link.target = '_blank';
+
+        const ext = doc.url.split('?')[0].split('.').pop() || 'pdf';
+        link.download = `${selectedUser.fullName.replace(/[^a-zA-Z0-9_\-]/g, '_')}_${doc.title}.${ext}`;
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    } finally {
+      setDownloadingAll(false);
+    }
+  };
+
+  const hasAnyDoc = !!(selectedUser && (
+    selectedUser.resumeUrl ||
+    selectedUser.passportUrl ||
+    selectedUser.visaUrl ||
+    selectedUser.eduCertUrl ||
+    selectedUser.empCertUrl ||
+    selectedUser.englishTestUrl ||
+    selectedUser.licenceUrl
+  ));
+
   const renderDocumentLink = (url: string | null | undefined, title: string) => {
     if (!url) {
       return (
@@ -68,17 +184,17 @@ export default function UserViewModal({
             </svg>
             {activeTab === "talents" ? "Talent Full Profile Details" : "Employer Profile Details"}
           </h3>
-          
+
           <div className="max-h-[70vh] overflow-y-auto pr-2 space-y-6">
             {/* Profile Card Header */}
             <div className="flex flex-col sm:flex-row items-center gap-4 bg-gray-50 dark:bg-white/[0.02] p-4 rounded-2xl border border-gray-100 dark:border-white/[0.05]">
               <div className="h-20 w-20 overflow-hidden rounded-full border-2 border-brand-500 bg-gray-100 dark:bg-gray-800 flex-shrink-0 flex items-center justify-center">
                 {activeTab === "talents" ? (
                   selectedUser.avatarUrl && !brokenImages[selectedUser.avatarUrl] ? (
-                    <img 
-                      src={selectedUser.avatarUrl} 
-                      alt="Avatar" 
-                      className="h-full w-full object-cover" 
+                    <img
+                      src={selectedUser.avatarUrl}
+                      alt="Avatar"
+                      className="h-full w-full object-cover"
                       onError={() => onImageError(selectedUser.avatarUrl)}
                     />
                   ) : (
@@ -86,10 +202,10 @@ export default function UserViewModal({
                   )
                 ) : (
                   selectedUser.companyLogo && !brokenImages[selectedUser.companyLogo] ? (
-                    <img 
-                      src={selectedUser.companyLogo} 
-                      alt="Logo" 
-                      className="h-full w-full object-contain p-1" 
+                    <img
+                      src={selectedUser.companyLogo}
+                      alt="Logo"
+                      className="h-full w-full object-contain p-1"
                       onError={() => onImageError(selectedUser.companyLogo)}
                     />
                   ) : (
@@ -170,7 +286,7 @@ export default function UserViewModal({
                     <div><span className="font-medium text-gray-800 dark:text-white">Is Employed:</span> {selectedUser.isEmployed || "N/A"}</div>
                     <div><span className="font-medium text-gray-800 dark:text-white">Worked Overseas:</span> {selectedUser.workedOverseas || "N/A"}</div>
                     <div className="md:col-span-2"><span className="font-medium text-gray-800 dark:text-white">Overseas Countries:</span> {selectedUser.overseasCountries || "N/A"}</div>
-                    
+
                     <div className="md:col-span-3">
                       <span className="font-medium text-gray-800 dark:text-white block mb-1">Key Skills:</span>
                       <div className="flex flex-wrap gap-1">
@@ -268,12 +384,39 @@ export default function UserViewModal({
 
                 {/* Documents Attached */}
                 <div className="space-y-3">
-                  <h5 className="font-semibold text-brand-500 border-b border-gray-100 pb-1.5 dark:border-gray-800 flex items-center gap-1.5">
-                    <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    Document Attachments (Click to Preview)
-                  </h5>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-100 pb-1.5 dark:border-gray-800 gap-2">
+                    <h5 className="font-semibold text-brand-500 flex items-center gap-1.5">
+                      <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Document Attachments (Click to Preview)
+                    </h5>
+                    {hasAnyDoc && (
+                      <button
+                        type="button"
+                        onClick={handleDownloadAll}
+                        disabled={downloadingAll}
+                        className="inline-flex items-center gap-1 text-xs font-bold text-brand-600 hover:text-brand-700 bg-brand-50 hover:bg-brand-100 px-3 py-1 rounded-lg border border-brand-100 transition-colors disabled:opacity-50"
+                      >
+                        {downloadingAll ? (
+                          <>
+                            <svg className="animate-spin h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                            </svg>
+                            Downloading...
+                          </>
+                        ) : (
+                          <>
+                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Download All Documents
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-white/[0.01] rounded-xl border border-gray-100 dark:border-white/[0.03]">
                       <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Resume / CV</span>
@@ -346,7 +489,7 @@ export default function UserViewModal({
               </div>
             )}
           </div>
-          
+
         </div>
       )}
     </Modal>
