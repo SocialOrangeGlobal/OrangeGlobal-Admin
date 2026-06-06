@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Modal } from "../../components/ui/modal";
 import Button from "../../components/ui/button/Button";
 import Input from "../../components/form/input/InputField";
-import { uploadFile } from "../../lib/storage";
+import { uploadFile, validateFileConstraints } from "../../lib/storage";
 import { SearchableDropdown } from "./SearchableDropdown";
 import { DefaultUserIcon } from "./UserViewModal";
 import {
@@ -104,6 +104,7 @@ export default function UserEditModal({
   const [editProfile, setEditProfile] = useState<any>({});
   const [activeEditTab, setActiveEditTab] = useState<string>("personal");
   const [uploading, setUploading] = useState<Record<string, boolean>>({});
+  const [uploadErrors, setUploadErrors] = useState<Record<string, string>>({});
   const [uploadedInSession, setUploadedInSession] = useState<Record<string, boolean>>({});
   const [brokenImages, setBrokenImages] = useState<Record<string, boolean>>({});
   const [skillInput, setSkillInput] = useState("");
@@ -355,10 +356,6 @@ export default function UserEditModal({
         showToast("Field of Study is required.", "error");
         return;
       }
-      if (!editProfile.institutionName?.trim()) {
-        showToast("Institution Name is required.", "error");
-        return;
-      }
       if (!editProfile.englishTest?.trim()) {
         showToast("Please select your English test status.", "error");
         return;
@@ -367,20 +364,8 @@ export default function UserEditModal({
         showToast("Current Visa / Residency Status is required.", "error");
         return;
       }
-      if (!editProfile.legalWorkRights?.trim()) {
-        showToast("Legal Work Rights information is required.", "error");
-        return;
-      }
       if (!editProfile.openToRelocation?.trim()) {
         showToast("Please indicate if you are open to relocation.", "error");
-        return;
-      }
-      if (!editProfile.validPassport?.trim()) {
-        showToast("Please indicate if you hold a valid passport.", "error");
-        return;
-      }
-      if (editProfile.validPassport === "Yes" && !editProfile.passportExpiry?.trim()) {
-        showToast("Passport Expiry Date is required.", "error");
         return;
       }
       if (!editProfile.passportUrl?.trim()) {
@@ -608,26 +593,41 @@ export default function UserEditModal({
           <div>
             <span className="block text-sm font-semibold text-gray-800 dark:text-white">{label}</span>
             <span className="block text-xs text-gray-400">Click to upload or change image</span>
+            <span className="text-[10px] text-gray-400 mt-1 block">Max Size: 1MB | Format: JPG, PNG, GIF, WEBP</span>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <input
-            id={inputId}
-            type="file"
-            className="hidden"
-            accept="image/*"
-            onChange={async (e) => {
-              const file = e.target.files?.[0];
-              if (file) await handleFileUpload(fieldName, file, bucket);
-            }}
-          />
-          <Button type="button" size="sm" variant="outline" onClick={() => document.getElementById(inputId)?.click()} disabled={isUploading}>
-            {isUploading ? "Uploading..." : "Upload Image"}
-          </Button>
-          {url && (
-            <Button type="button" size="sm" variant="outline" onClick={() => setEditProfile((prev: any) => ({ ...prev, [fieldName]: "" }))}>
-              Clear
+        <div className="flex flex-col gap-2 w-full sm:w-auto">
+          <div className="flex items-center gap-3">
+            <input
+              id={inputId}
+              type="file"
+              className="hidden"
+              accept="image/*"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const error = validateFileConstraints(file, bucket, ".jpg,.jpeg,.png,.gif,.webp");
+                  if (error) {
+                    setUploadErrors(prev => ({ ...prev, [fieldName]: error }));
+                    e.target.value = '';
+                    return;
+                  }
+                  setUploadErrors(prev => ({ ...prev, [fieldName]: "" }));
+                  await handleFileUpload(fieldName, file, bucket);
+                }
+              }}
+            />
+            <Button type="button" size="sm" variant="outline" onClick={() => document.getElementById(inputId)?.click()} disabled={isUploading}>
+              {isUploading ? "Uploading..." : "Upload Image"}
             </Button>
+            {url && (
+              <Button type="button" size="sm" variant="outline" onClick={() => setEditProfile((prev: any) => ({ ...prev, [fieldName]: "" }))}>
+                Clear
+              </Button>
+            )}
+          </div>
+          {uploadErrors[fieldName] && (
+            <span className="text-xs text-red-500 block text-right">{uploadErrors[fieldName]}</span>
           )}
         </div>
       </div>
@@ -678,6 +678,7 @@ export default function UserEditModal({
               {label} {required && <span className="text-red-500">*</span>}
             </h4>
             {statusElement}
+            <span className="text-[10px] text-gray-400 mt-1 block">Max Size: 5MB | Format: PDF, DOC, DOCX, JPG, PNG</span>
           </div>
         </div>
 
@@ -689,7 +690,15 @@ export default function UserEditModal({
             accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
             onChange={async (e) => {
               const file = e.target.files?.[0];
-              if (file) await handleFileUpload(fieldName, file, bucket);
+              if (file) {
+                const error = validateFileConstraints(file, bucket, ".pdf,.doc,.docx,.jpg,.jpeg,.png");
+                if (error) {
+                  showToast(`Validation failed: ${error}`, "error");
+                  e.target.value = '';
+                  return;
+                }
+                await handleFileUpload(fieldName, file, bucket);
+              }
             }}
           />
           <Button type="button" size="sm" variant="outline" onClick={() => document.getElementById(inputId)?.click()} disabled={isUploading}>
@@ -783,7 +792,7 @@ export default function UserEditModal({
               </div>
 
               {/* ── Tab content ─────────────────────────────────────────── */}
-              <div className="md:col-span-3 overflow-y-auto pr-2 pb-2">
+              <div className="md:col-span-3 overflow-y-auto custom-scrollbar pr-2 pb-2">
 
                 {/* ─── Personal Details ──────────────────────────────────── */}
                 {activeEditTab === "personal" && (
@@ -989,8 +998,8 @@ export default function UserEditModal({
                       <Input type="text" value={editProfile.fieldOfStudy || ""} onChange={(e) => setEditProfile({ ...editProfile, fieldOfStudy: e.target.value })} required />
                     </div>
                     <div>
-                      <label className={labelBase}>Institution Name <span className="text-red-500">*</span></label>
-                      <Input type="text" value={editProfile.institutionName || ""} onChange={(e) => setEditProfile({ ...editProfile, institutionName: e.target.value })} required />
+                      <label className={labelBase}>Institution Name</label>
+                      <Input type="text" value={editProfile.institutionName || ""} onChange={(e) => setEditProfile({ ...editProfile, institutionName: e.target.value })} />
                     </div>
                     <div>
                       <label className={labelBase}>Graduation Year</label>
@@ -1038,8 +1047,8 @@ export default function UserEditModal({
                       <Input type="text" value={editProfile.visaStatus || ""} onChange={(e) => setEditProfile({ ...editProfile, visaStatus: e.target.value })} required />
                     </div>
                     <div>
-                      <label className={labelBase}>Legal Work Rights <span className="text-red-500">*</span></label>
-                      <Input type="text" value={editProfile.legalWorkRights || ""} onChange={(e) => setEditProfile({ ...editProfile, legalWorkRights: e.target.value })} required />
+                      <label className={labelBase}>Legal Work Rights</label>
+                      <Input type="text" value={editProfile.legalWorkRights || ""} onChange={(e) => setEditProfile({ ...editProfile, legalWorkRights: e.target.value })} />
                     </div>
                     {renderSelectField("Open to Relocation?", "openToRelocation", yesNoOptions, true)}
                     {renderSelectField("Applied Aus/NZ Visa?", "appliedAusVisa", yesNoOptions)}
@@ -1062,10 +1071,10 @@ export default function UserEditModal({
                       </div>
                     )}
                     {renderSelectField("Relocate Status (Alone / Family)", "relocateAloneOrFamily", relocationFamilyStatuses)}
-                    {renderSelectField("Valid Passport?", "validPassport", yesNoOptions, true)}
+                    {renderSelectField("Valid Passport?", "validPassport", yesNoOptions)}
                     {editProfile.validPassport === "Yes" && (
                       /* Passport expiry — date picker */
-                      renderDateField("Passport Expiry Date", "passportExpiry", true)
+                      renderDateField("Passport Expiry Date", "passportExpiry")
                     )}
                     {renderSelectField("Medical Background Check OK?", "medicalBackgroundCheck", yesNoOptions)}
                     {renderSelectField("Criminal Convictions?", "criminalConvictions", yesNoOptions)}
@@ -1113,7 +1122,7 @@ export default function UserEditModal({
             /* ════════════════════════════════════════════════════════════════
                EMPLOYER FORM
             ═══════════════════════════════════════════════════════════════════ */
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 h-[55vh] overflow-y-auto pr-2 pb-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 h-[55vh] overflow-y-auto custom-scrollbar pr-2 pb-2">
               <div className="col-span-2 pt-2 border-t border-gray-100 dark:border-gray-800 mt-2">
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">Profile Details</h4>
               </div>

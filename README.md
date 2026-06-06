@@ -7,6 +7,8 @@ A secure, comprehensive administrative dashboard for the Orange Global platform.
 The Orange Global Admin Panel provides internal staff and administrators with the tools necessary to manage users, jobs, applications, and system configurations. It is built for performance, security, and ease of use.
 
 ## ✨ Key Features & Recent Updates
+- **Profile Validation Optimization**: Enhanced User Edit Modal by making non-critical fields (Institution Name, Legal Work Rights, Visa Passport, English Test, Professional License) optional and preventing empty string payload errors to backend.
+- **Enhanced Toast Notifications**: Upgraded the toast alert system style with improved typography, dynamic theming support, and elevated z-index logic to ensure visibility over stacked open modals.
 - **Platform Integrity & Global State Alignments**: Optimized structural components, page titles, and alignments to support unified UI presentation systems and clean compilation diagnostics across all admin views.
 - **Admin Chat & Messaging Hub**: Features a fully integrated, real-time message console (`MessagePage`) supporting instantaneous client-candidate-admin text communication and instant customer service workflows.
 - **Real-Time Notification Center**: Added a sleek glassmorphic header notification dropdown and specialized `/notifications` alerts panel, integrated via Socket.io for dynamic instant alerts on applicant updates and interview states.
@@ -60,3 +62,52 @@ This portal is strictly for authorized Orange Global personnel. Ensure that all 
 
 ---
 © 2026 Orange Global. All Rights Reserved.
+
+
+### Available Endpoints
+
+## API Endpoints
+
+- **[Authentication]** POST /api/v1/auth/signup/talent - Register a new Talent account
+- **[Authentication]** POST /api/v1/auth/signup/employer - Register a new Employer account
+- **[Authentication]** POST /api/v1/auth/signin - Sign in as Talent or Employer
+- **[Authentication]** POST /api/v1/auth/refresh - Rotate refresh token — returns a new token pair
+- **[Authentication]** POST /api/v1/auth/signout - Sign out — invalidates the refresh token
+- **[Authentication]** POST /api/v1/auth/forgot-password - Request password reset link
+- **[Authentication]** POST /api/v1/auth/reset-password - Reset password using token
+- **[Authentication]** GET /api/v1/auth/verify-email - Verify email using token
+- **[Authentication]** POST /api/v1/auth/resend-verification - Resend verification email
+- **[Users]** GET /api/v1/users/me - Get the current authenticated user with their profile
+- **[Users]** PATCH /api/v1/users/profile - Update user profile
+- **[Users]** POST /api/v1/users/resumes - Add a new resume (max 5)
+- **[Users]** PATCH /api/v1/users/resumes/{id}/default - Set a resume as default
+- **[Users]** DELETE /api/v1/users/resumes/{id} - Delete a resume
+- **[Users]** GET /api/v1/users/talents - Get all talents (Admin only)
+- **[Users]** GET /api/v1/users/employers - Get all employers (Admin only)
+- **[Users]** GET /api/v1/users/{id} - Get details of a single user (Admin only)
+- **[Users]** PATCH /api/v1/users/{id} - Update a user (Admin only)
+- **[Users]** DELETE /api/v1/users/{id} - Delete a user (Admin only)
+- **[Maintenance]** DELETE /api/v1/maintenance/reset - Reset System (DEVELOPMENT ONLY)
+- **[Contact]** POST /api/v1/contact - Submit a contact form message / enquiry
+- **[Contact]** GET /api/v1/contact - Get all contact messages (Admin only)
+- **[Contact]** GET /api/v1/contact/my-messages - Get current user's submitted enquiries and replies
+- **[Contact]** POST /api/v1/contact/{id}/reply - Submit a reply / follow-up to a message
+- **[Contact]** GET /api/v1/contact/{id} - Get a single contact message / enquiry (Admin only)
+- **[Contact]** PATCH /api/v1/contact/{id} - Update status or notes of an enquiry (Admin only)
+- **[Jobs]** GET /api/v1/jobs - Get all published jobs with filtering and pagination
+- **[Jobs]** POST /api/v1/jobs - Create a new job (Admin only)
+- **[Jobs]** GET /api/v1/jobs/stats - Get job statistics (Admin only)
+- **[Jobs]** GET /api/v1/jobs/{id} - Get a specific job by ID
+- **[Jobs]** PATCH /api/v1/jobs/{id} - Update an existing job (Admin only)
+- **[Jobs]** DELETE /api/v1/jobs/{id} - Delete a job (Admin only)
+- **[Applications]** POST /api/v1/jobs/{id}/apply - Apply for a job (Talent only)
+- **[Applications]** GET /api/v1/talent/applications - Get current talent applications
+- **[Applications]** GET /api/v1/applications - Get all applications (Admin only)
+- **[Applications]** GET /api/v1/jobs/{id}/applications - Get applications for a specific job (Admin only)
+- **[Applications]** PATCH /api/v1/applications/{id}/status - Update application status (Admin only)
+- **[Admin Dashboard]** GET /api/v1/dashboard/stats - Get comprehensive dashboard statistics (Admin only)
+- **[Notifications]** GET /api/v1/notifications - Get user notifications with pagination
+- **[Notifications]** GET /api/v1/notifications/unread-count - Get unread notifications count
+- **[Notifications]** PATCH /api/v1/notifications/{id}/read - Mark a notification as read
+- **[Notifications]** PATCH /api/v1/notifications/read-all - Mark all notifications as read
+- **[Chatbot]** POST /api/v1/chatbot - Send a message to the Orange AI Chatbot

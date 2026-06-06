@@ -185,7 +185,7 @@ export default function UserViewModal({
             {activeTab === "talents" ? "Talent Full Profile Details" : "Employer Profile Details"}
           </h3>
 
-          <div className="max-h-[70vh] overflow-y-auto pr-2 space-y-6">
+          <div className="max-h-[70vh] overflow-y-auto custom-scrollbar pr-2 space-y-6">
             {/* Profile Card Header */}
             <div className="flex flex-col sm:flex-row items-center gap-4 bg-gray-50 dark:bg-white/[0.02] p-4 rounded-2xl border border-gray-100 dark:border-white/[0.05]">
               <div className="h-20 w-20 overflow-hidden rounded-full border-2 border-brand-500 bg-gray-100 dark:bg-gray-800 flex-shrink-0 flex items-center justify-center">
@@ -396,7 +396,7 @@ export default function UserViewModal({
                         type="button"
                         onClick={handleDownloadAll}
                         disabled={downloadingAll}
-                        className="inline-flex items-center gap-1 text-xs font-bold text-brand-600 hover:text-brand-700 bg-brand-50 hover:bg-brand-100 px-3 py-1 rounded-lg border border-brand-100 transition-colors disabled:opacity-50"
+                        className="inline-flex items-center gap-1 text-xs font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 bg-brand-50 dark:bg-brand-950/20 hover:bg-brand-100 dark:hover:bg-brand-900/30 px-3 py-1 rounded-lg border border-brand-100 dark:border-brand-900/30 transition-colors disabled:opacity-50"
                       >
                         {downloadingAll ? (
                           <>

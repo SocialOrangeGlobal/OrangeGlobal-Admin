@@ -3,7 +3,7 @@ import { Modal } from "../../components/ui/modal";
 import Button from "../../components/ui/button/Button";
 import Select from "../../components/form/Select";
 import { Loader2, Upload, Link as LinkIcon } from "lucide-react";
-import { uploadFile } from "../../lib/storage";
+import { uploadFile, validateFileConstraints } from "../../lib/storage";
 
 interface JobFormModalProps {
   isOpen: boolean;
@@ -92,6 +92,18 @@ export default function JobFormModal({
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    const error = validateFileConstraints(file, 'company-logo', '.jpg,.jpeg,.png,.webp');
+    if (error) {
+      setErrors(prev => ({ ...prev, companyLogo: error }));
+      e.target.value = '';
+      return;
+    }
+    setErrors(prev => {
+      const copy = { ...prev };
+      delete copy.companyLogo;
+      return copy;
+    });
 
     setUploadingLogo(true);
     try {
@@ -487,9 +499,9 @@ export default function JobFormModal({
                         <p className="text-sm font-semibold text-gray-800 dark:text-white">
                           {uploadingLogo ? "Uploading Company Logo..." : "Upload Company Logo"}
                         </p>
-                        <p className="text-xs text-gray-400 mt-1">
-                          Drag & drop or click to choose – JPG, PNG or WEBP (Max 2MB)
-                        </p>
+                        <span className="text-[10px] text-gray-400 mt-1 block">
+                          Max Size: 1MB | Format: JPG, PNG, WEBP
+                        </span>
                       </div>
                     </div>
                   ) : (
@@ -509,6 +521,9 @@ export default function JobFormModal({
                         Paste a direct URL to a company logo image (JPG, PNG, WEBP)
                       </p>
                     </div>
+                  )}
+                  {errors.companyLogo && (
+                    <p className="text-xs text-red-500 mt-2 font-medium">{errors.companyLogo}</p>
                   )}
                 </div>
               </div>

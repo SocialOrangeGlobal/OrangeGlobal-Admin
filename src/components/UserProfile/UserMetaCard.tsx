@@ -5,7 +5,7 @@ import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import { useAuth } from "../../context/AuthContext";
-import { uploadFile } from "../../lib/storage";
+import { uploadFile, validateFileConstraints } from "../../lib/storage";
 
 interface UserMetaCardProps {
   profile: any;
@@ -31,9 +31,19 @@ export default function UserMetaCard({ profile, onRefresh }: UserMetaCardProps) 
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
+  const [uploadError, setUploadError] = useState("");
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    const error = validateFileConstraints(file, 'profile-pictures', '.jpg,.jpeg,.png,.webp');
+    if (error) {
+      setUploadError(error);
+      e.target.value = '';
+      return;
+    }
+    setUploadError("");
 
     setUploading(true);
     try {
@@ -385,9 +395,12 @@ export default function UserMetaCard({ profile, onRefresh }: UserMetaCardProps) 
                             disabled={uploading}
                           />
                         </label>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          JPG, PNG or GIF. Max 5MB.
-                        </p>
+                        <span className="text-[10px] text-gray-400 mt-1 block">
+                          Max Size: 1MB | Format: JPG, PNG, GIF
+                        </span>
+                        {uploadError && (
+                          <span className="text-xs text-red-500 font-medium block">{uploadError}</span>
+                        )}
                       </div>
                       {formData.avatarUrl && (
                         <button

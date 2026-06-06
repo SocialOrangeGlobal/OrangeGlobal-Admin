@@ -54,7 +54,7 @@ export const Modal: React.FC<ModalProps> = ({
     : "relative w-full rounded-3xl bg-white  dark:bg-gray-900";
 
   return (
-    <div className="fixed inset-0 z-99999 overflow-y-auto">
+    <div className="fixed inset-0 z-99999 overflow-y-auto custom-scrollbar">
       <div className="flex min-h-full items-center justify-center p-4 sm:py-8">
         {!isFullscreen && (
           <div

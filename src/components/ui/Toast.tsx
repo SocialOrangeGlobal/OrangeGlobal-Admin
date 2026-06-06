@@ -16,22 +16,22 @@ export default function Toast({ message, type, onClose }: ToastProps) {
 
   const bgStyle =
     type === "success"
-      ? "bg-emerald-600 border-emerald-700"
+      ? "bg-success-500 border-success-600 text-white"
       : type === "error"
-      ? "bg-red-550 border-red-600"
+      ? "bg-error-500 border-error-600 text-white"
       : type === "warning"
-      ? "bg-brand-500 border-brand-650"
-      : "bg-blue-600 border-blue-700";
+      ? "bg-warning-500 border-warning-600 text-white"
+      : "bg-blue-light-500 border-blue-light-600 text-white";
 
   return (
-    <div className="fixed z-99999 bottom-5 right-5 animate-fade-in-up">
+    <div className="fixed z-[999999] bottom-5 right-5 animate-fade-in-up">
       <div
-        className={`flex items-center gap-3 px-5 py-3 rounded-lg border shadow-lg text-white ${bgStyle}`}
+        className={`flex items-center gap-4 px-6 py-4 rounded-xl border shadow-theme-xl ${bgStyle}`}
       >
-        <span className="text-sm font-medium">{message}</span>
+        <span className="text-base font-semibold">{message}</span>
         <button
           onClick={onClose}
-          className="ml-2 font-bold text-white/80 hover:text-white transition-colors"
+          className="ml-2 text-xl font-bold opacity-80 hover:opacity-100 transition-opacity"
         >
           &times;
         </button>
