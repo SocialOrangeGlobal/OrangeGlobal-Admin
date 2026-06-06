@@ -678,7 +678,9 @@ export default function UserEditModal({
               {label} {required && <span className="text-red-500">*</span>}
             </h4>
             {statusElement}
-            <span className="text-[10px] text-gray-400 mt-1 block">Max Size: 5MB | Format: PDF, DOC, DOCX, JPG, PNG</span>
+            <span className={`text-[10px] mt-1 block ${uploadErrors[fieldName] ? 'text-red-500 font-semibold' : 'text-gray-400'}`}>
+              {uploadErrors[fieldName] || "Max Size: 5MB | Format: PDF, DOC, DOCX, JPG, PNG"}
+            </span>
           </div>
         </div>
 
@@ -690,10 +692,11 @@ export default function UserEditModal({
             accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
             onChange={async (e) => {
               const file = e.target.files?.[0];
+              setUploadErrors((prev: any) => ({ ...prev, [fieldName]: '' }));
               if (file) {
                 const error = validateFileConstraints(file, bucket, ".pdf,.doc,.docx,.jpg,.jpeg,.png");
                 if (error) {
-                  showToast(`Validation failed: ${error}`, "error");
+                  setUploadErrors((prev: any) => ({ ...prev, [fieldName]: error }));
                   e.target.value = '';
                   return;
                 }
