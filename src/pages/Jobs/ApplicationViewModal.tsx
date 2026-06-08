@@ -4,7 +4,7 @@ import Badge from "../../components/ui/badge/Badge";
 import {
   User, FileText, Calendar, ShieldCheck, Mail, Target, Briefcase,
   GraduationCap, Building, Globe, Clock, Award,
-  BookOpen, Download, ExternalLink, Eye, X, ZoomIn
+  BookOpen, Download, ExternalLink, Eye, X, ZoomIn, Building2
 } from "lucide-react";
 
 interface ApplicationViewModalProps {
@@ -84,9 +84,7 @@ export default function ApplicationViewModal({
                   className="h-full w-full object-contain p-2"
                 />
               ) : (
-                <span className="text-gray-400 font-bold text-lg uppercase">
-                  {(application.job?.company || "CO").substring(0, 2)}
-                </span>
+                <Building2 className="w-6 h-6 text-gray-300 dark:text-gray-600" />
               )}
             </div>
             <div>

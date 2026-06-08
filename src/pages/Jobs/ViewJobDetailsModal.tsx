@@ -1,5 +1,6 @@
 import { Modal } from "../../components/ui/modal";
 import Badge from "../../components/ui/badge/Badge";
+import { Building2 } from "lucide-react";
 
 interface ViewJobDetailsModalProps {
   isOpen: boolean;
@@ -44,9 +45,7 @@ export default function ViewJobDetailsModal({
                   className="h-full w-full object-contain p-2"
                 />
               ) : (
-                <span className="text-gray-400 font-bold text-xl uppercase">
-                  {job.company.substring(0, 2)}
-                </span>
+                <Building2 className="w-8 h-8 text-gray-300 dark:text-gray-600" />
               )}
             </div>
             <div>

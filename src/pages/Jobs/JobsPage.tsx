@@ -11,6 +11,7 @@ import ApplicationStatusModal from "./ApplicationStatusModal";
 import ApplicationViewModal from "./ApplicationViewModal";
 import { useNavigate } from "react-router";
 import PageLoader from "../../components/ui/PageLoader";
+import { Building2 } from "lucide-react";
 
 export default function JobsPage() {
   const { authFetch, showToast } = useAuth();
@@ -460,9 +461,7 @@ export default function JobsPage() {
                                   className="h-full w-full object-contain p-1"
                                 />
                               ) : (
-                                <span className="text-gray-400 font-bold text-xs uppercase">
-                                  {item.company.substring(0, 2)}
-                                </span>
+                                <Building2 className="w-5 h-5 text-gray-300 dark:text-gray-600" />
                               )}
                             </div>
                             <div>
