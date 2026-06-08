@@ -31,6 +31,10 @@ const categories = [
   "Executive Search",
   "Healthcare & Nursing",
   "Engineering",
+  "Mechanics",
+  "Fabrication & Manufacturing",
+  "Construction Trades",
+  "Hospitality",
   "Other"
 ];
 
