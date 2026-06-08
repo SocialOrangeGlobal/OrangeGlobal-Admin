@@ -490,6 +490,7 @@ export default function ApplicationViewModal({
                 {documents.map((doc, idx) => {
                   const isImage = /\.(jpeg|jpg|gif|png)(\?|$)/i.test(doc.url);
                   const isPdf = /\.pdf(\?|$)/i.test(doc.url);
+                  const isDoc = /\.(doc|docx)(\?|$)/i.test(doc.url);
                   return (
                     <div
                       key={idx}
@@ -506,6 +507,12 @@ export default function ApplicationViewModal({
                         ) : isPdf ? (
                           <iframe
                             src={doc.url}
+                            title={doc.name}
+                            className="w-full h-full border-0 pointer-events-none"
+                          />
+                        ) : isDoc ? (
+                          <iframe
+                            src={`https://docs.google.com/gview?url=${encodeURIComponent(doc.url)}&embedded=true`}
                             title={doc.name}
                             className="w-full h-full border-0 pointer-events-none"
                           />
@@ -689,6 +696,12 @@ export default function ApplicationViewModal({
               ) : /\.pdf(\?|$)/i.test(selectedDoc.url) ? (
                 <iframe
                   src={selectedDoc.url}
+                  title={selectedDoc.title}
+                  className="w-full h-[55vh] sm:h-[65vh] rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700"
+                />
+              ) : /\.(doc|docx)(\?|$)/i.test(selectedDoc.url) ? (
+                <iframe
+                  src={`https://docs.google.com/gview?url=${encodeURIComponent(selectedDoc.url)}&embedded=true`}
                   title={selectedDoc.title}
                   className="w-full h-[55vh] sm:h-[65vh] rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700"
                 />

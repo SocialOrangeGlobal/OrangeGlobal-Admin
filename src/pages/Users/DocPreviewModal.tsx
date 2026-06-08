@@ -116,6 +116,12 @@ export default function DocPreviewModal({
                   className="max-w-full max-h-full object-contain rounded-lg shadow-sm"
                 />
               </div>
+            ) : docUrl.toLowerCase().endsWith(".doc") || docUrl.toLowerCase().endsWith(".docx") ? (
+              <iframe
+                src={`https://docs.google.com/gview?url=${encodeURIComponent(safeDocUrl)}&embedded=true`}
+                title={docTitle}
+                className="h-full w-full border-0 bg-white"
+              />
             ) : (
               <iframe
                 src={safeDocUrl}
