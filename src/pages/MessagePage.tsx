@@ -17,6 +17,7 @@ export default function MessagePage() {
     { value: "ALL", label: "All Types" },
     { value: "GENERAL_QUERY", label: "General Query" },
     { value: "CONSULTATION", label: "Consultation" },
+    { value: "NEWSLETTER", label: "Newsletter" },
   ];
 
   const statusOptions = [
@@ -338,9 +339,11 @@ export default function MessagePage() {
                     <td className="px-5 py-4">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${msg.type === "CONSULTATION"
                         ? "bg-red-50 border-red-200 text-red-600 dark:bg-red-950/20 dark:border-red-900/30 dark:text-red-400"
-                        : "bg-blue-50 border-blue-200 text-blue-600 dark:bg-blue-950/20 dark:border-blue-900/30 dark:text-blue-400"
+                        : msg.type === "NEWSLETTER"
+                          ? "bg-purple-50 border-purple-200 text-purple-600 dark:bg-purple-950/20 dark:border-purple-900/30 dark:text-purple-400"
+                          : "bg-blue-50 border-blue-200 text-blue-600 dark:bg-blue-950/20 dark:border-blue-900/30 dark:text-blue-400"
                         }`}>
-                        {msg.type === "CONSULTATION" ? "Consultation" : "General Query"}
+                        {msg.type === "CONSULTATION" ? "Consultation" : msg.type === "NEWSLETTER" ? "Newsletter" : "General Query"}
                       </span>
                     </td>
                     <td className="px-5 py-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -456,9 +459,11 @@ export default function MessagePage() {
               </h3>
               <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${selectedMsg.type === "CONSULTATION"
                 ? "bg-red-50 border-red-200 text-red-600 dark:bg-red-950/20 dark:border-red-900/30 dark:text-red-400"
-                : "bg-blue-50 border-blue-200 text-blue-600 dark:bg-blue-950/20 dark:border-blue-900/30 dark:text-blue-400"
+                : selectedMsg.type === "NEWSLETTER"
+                  ? "bg-purple-50 border-purple-200 text-purple-600 dark:bg-purple-950/20 dark:border-purple-900/30 dark:text-purple-400"
+                  : "bg-blue-50 border-blue-200 text-blue-600 dark:bg-blue-950/20 dark:border-blue-900/30 dark:text-blue-400"
                 }`}>
-                {selectedMsg.type === "CONSULTATION" ? "Premium Consultation" : "General Query"}
+                {selectedMsg.type === "CONSULTATION" ? "Premium Consultation" : selectedMsg.type === "NEWSLETTER" ? "Newsletter Subscriber" : "General Query"}
               </span>
             </div>
 
