@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import { useAuth } from "../../context/AuthContext";
@@ -61,6 +61,18 @@ export default function JobsPage() {
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api/v1";
 
+  // ── Stable refs so useCallback doesn't get a new identity on every context render ──
+  const authFetchRef = useRef(authFetch);
+  const showToastRef = useRef(showToast);
+  useEffect(() => { authFetchRef.current = authFetch; }, [authFetch]);
+  useEffect(() => { showToastRef.current = showToast; }, [showToast]);
+
+  // Manual trigger: increment to force a refresh without changing fetchData identity
+  const [fetchTrigger, setFetchTrigger] = useState(0);
+  const [appFetchTrigger, setAppFetchTrigger] = useState(0);
+  const triggerRefresh = useCallback(() => setFetchTrigger(n => n + 1), []);
+  const triggerAppRefresh = useCallback(() => setAppFetchTrigger(n => n + 1), []);
+
   // Fetch data
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -72,7 +84,7 @@ export default function JobsPage() {
             ? "false"
             : "all";
 
-      const res = await authFetch(
+      const res = await authFetchRef.current(
         `${API_URL}/jobs?page=${page}&limit=${limit}&search=${encodeURIComponent(
           search
         )}&category=${encodeURIComponent(category)}&mode=${encodeURIComponent(
@@ -87,20 +99,20 @@ export default function JobsPage() {
         setTotal(data.total || 0);
         setPages(data.pages || 1);
       } else {
-        showToast("Failed to fetch jobs list", "error");
+        showToastRef.current("Failed to fetch jobs list", "error");
       }
     } catch (err) {
       console.error("Error fetching jobs:", err);
-      showToast("An unexpected error occurred", "error");
+      showToastRef.current("An unexpected error occurred", "error");
     } finally {
       setLoading(false);
     }
-  }, [page, search, category, mode, statusTab, authFetch, showToast, API_URL]);
+  }, [page, search, category, mode, statusTab, API_URL]);
 
   // Fetch Stats
   const fetchStats = useCallback(async () => {
     try {
-      const res = await authFetch(`${API_URL}/jobs/stats`);
+      const res = await authFetchRef.current(`${API_URL}/jobs/stats`);
       if (res.ok) {
         const result = await res.json();
         setStats(result?.data?.data || { total: 0, published: 0, unpublished: 0, totalVacancies: 0 });
@@ -108,7 +120,7 @@ export default function JobsPage() {
     } catch (err) {
       console.error("Error fetching job stats:", err);
     }
-  }, [authFetch, API_URL]);
+  }, [API_URL]);
 
   useEffect(() => {
     setPage(1);
@@ -119,28 +131,29 @@ export default function JobsPage() {
       fetchData();
       fetchStats();
     }
-  }, [fetchData, fetchStats, mainTab]);
+  }, [fetchData, fetchStats, mainTab, fetchTrigger]);
 
   // Fetch Applications
   const fetchApplications = useCallback(async () => {
     setAppLoading(true);
     try {
-      const res = await authFetch(`${API_URL}/applications?page=${appPage}&limit=${limit}&search=${encodeURIComponent(appSearch)}&status=${encodeURIComponent(appStatusTab)}`);
+      const res = await authFetchRef.current(`${API_URL}/applications?page=${appPage}&limit=${limit}&search=${encodeURIComponent(appSearch)}&status=${encodeURIComponent(appStatusTab)}`);
       if (res.ok) {
         const result = await res.json();
         setAppItems(result?.data?.items || []);
         setAppTotal(result?.data?.total || 0);
         setAppPages(result?.data?.pages || 1);
       } else {
-        showToast("Failed to fetch applications", "error");
+        showToastRef.current("Failed to fetch applications", "error");
       }
     } catch (err) {
       console.error(err);
-      showToast("Error fetching applications", "error");
+      showToastRef.current("Error fetching applications", "error");
     } finally {
       setAppLoading(false);
     }
-  }, [appPage, appSearch, appStatusTab, authFetch, API_URL, showToast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appPage, appSearch, appStatusTab, API_URL]);
 
   useEffect(() => {
     setAppPage(1);
@@ -150,7 +163,8 @@ export default function JobsPage() {
     if (mainTab === 'applications') {
       fetchApplications();
     }
-  }, [fetchApplications, mainTab]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchApplications, mainTab, appFetchTrigger]);
 
   // Update App Status
   const updateAppStatus = async (appId: string, status: string, interviewData?: any) => {
@@ -164,15 +178,15 @@ export default function JobsPage() {
         body: JSON.stringify(payload)
       });
       if (res.ok) {
-        showToast("Status updated", "success");
+        showToastRef.current("Status updated", "success");
         setSelectedAppForStatus(null);
-        fetchApplications();
+        triggerAppRefresh();
       } else {
-        showToast("Failed to update status", "error");
+        showToastRef.current("Failed to update status", "error");
       }
     } catch (error) {
       console.error(error);
-      showToast("Error updating status", "error");
+      showToastRef.current("Error updating status", "error");
     } finally {
       setUpdatingAppStatus(false);
     }
@@ -217,16 +231,15 @@ export default function JobsPage() {
       });
 
       if (res.ok) {
-        showToast(
+        showToastRef.current(
           isEdit ? "Job updated successfully" : "Job created successfully",
           "success"
         );
         setFormOpen(false);
-        fetchData();
-        fetchStats();
+        triggerRefresh();
       } else {
         const errorResult = await res.json();
-        showToast(errorResult.message || "Failed to save job details", "error");
+        showToastRef.current(errorResult.message || "Failed to save job details", "error");
       }
     } catch (err) {
       console.error("Error saving job:", err);
@@ -246,12 +259,11 @@ export default function JobsPage() {
       });
 
       if (res.ok) {
-        showToast("Job vacancy deleted successfully", "success");
+        showToastRef.current("Job vacancy deleted successfully", "success");
         setDeleteOpen(false);
-        fetchData();
-        fetchStats();
+        triggerRefresh();
       } else {
-        showToast("Failed to delete job vacancy", "error");
+        showToastRef.current("Failed to delete job vacancy", "error");
       }
     } catch (err) {
       console.error("Error deleting job:", err);
@@ -271,18 +283,17 @@ export default function JobsPage() {
       });
 
       if (res.ok) {
-        showToast(
+        showToastRef.current(
           item.isPublished ? "Job moved to drafts" : "Job published successfully",
           "success"
         );
-        fetchData();
-        fetchStats();
+        triggerRefresh();
       } else {
-        showToast("Failed to update job status", "error");
+        showToastRef.current("Failed to update job status", "error");
       }
     } catch (err) {
       console.error("Error toggling publish:", err);
-      showToast("Error updating job publish status", "error");
+      showToastRef.current("Error updating job publish status", "error");
     }
   };
 
@@ -298,8 +309,8 @@ export default function JobsPage() {
         <button
           onClick={() => setMainTab('jobs')}
           className={`pb-4 px-2 text-sm font-semibold transition border-b-2 cursor-pointer ${mainTab === 'jobs'
-              ? 'border-brand-500 text-brand-500'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
+            ? 'border-brand-500 text-brand-500'
+            : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
         >
           Job Postings
@@ -307,8 +318,8 @@ export default function JobsPage() {
         <button
           onClick={() => setMainTab('applications')}
           className={`pb-4 px-2 text-sm font-semibold transition border-b-2 cursor-pointer ${mainTab === 'applications'
-              ? 'border-brand-500 text-brand-500'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
+            ? 'border-brand-500 text-brand-500'
+            : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
         >
           Applied Jobs
@@ -750,7 +761,7 @@ export default function JobsPage() {
             )}
           </div>
         </>
-            )}
+      )}
 
       {/* CREATE & EDIT FORM MODAL */}
       <JobFormModal
