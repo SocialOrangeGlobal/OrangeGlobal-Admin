@@ -170,11 +170,10 @@ export default function NotificationDropdown() {
                       onClick={() =>
                         handleNotificationClick(notif.id, notif.link)
                       }
-                      className={`w-full flex gap-3 px-5 py-3.5 text-left transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.03] ${
-                        !notif.isRead
-                          ? "bg-orange-50/60 dark:bg-orange-900/10"
-                          : ""
-                      }`}
+                      className={`w-full flex gap-3 px-5 py-3.5 text-left transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.03] ${!notif.isRead
+                        ? "bg-orange-50/60 dark:bg-orange-900/10"
+                        : ""
+                        }`}
                     >
                       {/* Icon bubble */}
                       <span
@@ -187,11 +186,10 @@ export default function NotificationDropdown() {
                       <span className="flex-1 min-w-0">
                         <span className="flex items-start justify-between gap-1 mb-0.5">
                           <span
-                            className={`text-sm font-semibold leading-tight ${
-                              !notif.isRead
-                                ? "text-gray-900 dark:text-white"
-                                : "text-gray-700 dark:text-gray-300"
-                            }`}
+                            className={`text-sm font-semibold leading-tight ${!notif.isRead
+                              ? "text-gray-900 dark:text-white"
+                              : "text-gray-700 dark:text-gray-300"
+                              }`}
                           >
                             {notif.title}
                           </span>

@@ -60,8 +60,8 @@ const SocketContext = createContext<SocketContextValue>({
   notifications: [],
   unreadCount: 0,
   isConnected: false,
-  markAsRead: async () => {},
-  markAllAsRead: async () => {},
+  markAsRead: async () => { },
+  markAllAsRead: async () => { },
 });
 
 export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({

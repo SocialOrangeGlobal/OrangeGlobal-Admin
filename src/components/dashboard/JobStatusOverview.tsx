@@ -9,7 +9,7 @@ interface JobStatusOverviewProps {
 export default function JobStatusOverview({ activeJobs, totalJobs }: JobStatusOverviewProps) {
   // Calculate percentage safely
   const percentage = totalJobs > 0 ? Math.round((activeJobs / totalJobs) * 100) : 0;
-  
+
   const series = [percentage];
   const options: ApexOptions = {
     colors: ["#10B981"], // Emerald-500

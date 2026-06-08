@@ -6,7 +6,7 @@ interface ApplicationTrendsChartProps {
 }
 
 export default function ApplicationTrendsChart({ statusDistribution }: ApplicationTrendsChartProps) {
-  
+
   // Format the statuses for nice display
   const formatLabel = (status: string) => {
     return status.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
