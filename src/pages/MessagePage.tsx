@@ -547,13 +547,25 @@ export default function MessagePage() {
                 </div>
 
                 {/* Live Threaded Conversation */}
-                <div className="space-y-4">
-                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-200 dark:border-gray-800 pb-2">Threaded Conversation</h4>
+                <div className="flex flex-col h-full bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
+                  <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-white/[0.02]">
+                    <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                      <svg className="w-4 h-4 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                      Threaded Conversation
+                    </h4>
+                  </div>
 
                   {/* Replies List */}
-                  <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1">
+                  <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-[350px] bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] dark:bg-none bg-fixed custom-scrollbar bg-opacity-50">
                     {!selectedMsg.replies || selectedMsg.replies.length === 0 ? (
-                      <p className="text-xs text-gray-400 text-center py-4">No thread messages yet. Send the first reply below!</p>
+                      <div className="flex flex-col items-center justify-center h-full text-center space-y-2 opacity-50 py-10">
+                        <svg className="w-10 h-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                        <p className="text-xs font-medium text-gray-500">No messages yet. Send the first reply below!</p>
+                      </div>
                     ) : (
                       selectedMsg.replies.map((reply: any) => {
                         const isSelf = reply.senderRole === "ADMIN";
@@ -564,26 +576,26 @@ export default function MessagePage() {
                         return (
                           <div
                             key={reply.id}
-                            className={`flex gap-2.5 max-w-[88%] ${isSelf ? "ml-auto flex-row-reverse text-right" : "mr-auto text-left"
-                              }`}
+                            className={`flex gap-3 max-w-[85%] ${isSelf ? "ml-auto flex-row-reverse" : "mr-auto"}`}
                           >
-                            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold border ${isSelf
-                              ? "bg-brand-500 text-white border-brand-500/10"
-                              : "bg-gray-200 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 shadow-sm ${isSelf
+                              ? "bg-brand-100 text-brand-700 border border-brand-200 dark:bg-brand-900/40 dark:text-brand-300 dark:border-brand-800"
+                              : "bg-gray-100 text-gray-600 border border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                               }`}>
                               {senderName.charAt(0)}
                             </div>
-                            <div>
-                              <div className="flex items-center gap-1.5 mb-0.5 text-[9px] text-gray-400 font-bold justify-start">
-                                <span>{senderName}</span>
-                                <span>•</span>
-                                <span>{new Date(reply.createdAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</span>
+                            <div className={`flex flex-col ${isSelf ? "items-end" : "items-start"}`}>
+                              <div className="flex items-center gap-2 mb-1 px-1">
+                                <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400">{isSelf ? "You" : senderName}</span>
+                                <span className="text-[9px] text-gray-400 font-medium">
+                                  {new Date(reply.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
                               </div>
-                              <div className={`p-3 rounded-xl text-xs leading-relaxed border ${isSelf
-                                ? "bg-brand-50 border-brand-100 text-brand-950 dark:bg-brand-950/20 dark:border-brand-900/30 dark:text-brand-300 rounded-tr-none"
-                                : "bg-white border-gray-150 text-gray-800 dark:bg-white/[0.02] dark:border-gray-800 dark:text-gray-300 rounded-tl-none"
+                              <div className={`px-4 py-2.5 text-[13px] leading-relaxed shadow-sm ${isSelf
+                                ? "bg-brand-500 text-white rounded-[20px] rounded-tr-[4px]"
+                                : "bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-[20px] rounded-tl-[4px]"
                                 }`}>
-                                <p className="whitespace-pre-wrap">{reply.message}</p>
+                                <p className="whitespace-pre-wrap font-medium">{reply.message}</p>
                               </div>
                             </div>
                           </div>
@@ -593,21 +605,32 @@ export default function MessagePage() {
                   </div>
 
                   {/* Send Reply form */}
-                  <div className="flex gap-2 pt-2">
-                    <textarea
-                      value={adminReply}
-                      onChange={(e) => setAdminReply(e.target.value)}
-                      placeholder="Type a response message directly to customer..."
-                      rows={1}
-                      className="flex-1 px-3 py-2 border border-gray-200 dark:border-gray-800 rounded-lg text-sm bg-white dark:bg-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 resize-none font-medium h-10"
-                    />
-                    <button
-                      disabled={isSendingReply || !adminReply.trim()}
-                      onClick={handleSendAdminReply}
-                      className="h-10 px-4 rounded-lg bg-brand-500 text-white font-bold text-xs hover:bg-brand-600 disabled:bg-gray-100 disabled:text-gray-300 dark:disabled:bg-white/[0.02] transition-colors cursor-pointer flex items-center justify-center shrink-0"
-                    >
-                      {isSendingReply ? "Sending..." : "Reply"}
-                    </button>
+                  <div className="p-3 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800">
+                    <div className="flex items-end gap-2 relative">
+                      <textarea
+                        value={adminReply}
+                        onChange={(e) => setAdminReply(e.target.value)}
+                        placeholder="Type your response here..."
+                        rows={1}
+                        className="flex-1 max-h-[120px] min-h-[44px] pl-4 pr-12 py-3 border border-gray-200 dark:border-gray-700 rounded-2xl text-[13px] bg-gray-50 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 resize-none font-medium custom-scrollbar"
+                      />
+                      <button
+                        disabled={isSendingReply || !adminReply.trim()}
+                        onClick={handleSendAdminReply}
+                        className="absolute right-1.5 bottom-1.5 h-[32px] w-[32px] rounded-xl bg-brand-500 text-white flex items-center justify-center hover:bg-brand-600 disabled:bg-gray-200 disabled:text-gray-400 dark:disabled:bg-gray-700 transition-all cursor-pointer shadow-sm disabled:shadow-none"
+                      >
+                        {isSendingReply ? (
+                          <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4 ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
