@@ -17,10 +17,10 @@ export default function AuthLayout({
             {/* <!-- ===== Common Grid Shape Start ===== --> */}
             <GridShape />
             <div className="flex flex-col items-center max-w-xs">
-              <Link to="/" className="block mb-4">
+              <Link to="/" className="block">
                 <img
-                  width={231}
-                  height={48}
+                  width={251}
+                  height={55}
                   src="/images/logo/brand-logo-light.png"
                   alt="Logo"
                 />
