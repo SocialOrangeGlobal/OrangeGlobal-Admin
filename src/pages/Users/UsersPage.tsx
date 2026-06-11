@@ -311,7 +311,7 @@ export default function UsersPage() {
                           <td className="px-5 py-4 text-theme-sm text-gray-700 dark:text-gray-300">
                             <div className="space-y-0.5 text-xs">
                               <div>Visa: <span className="font-semibold text-gray-600 dark:text-gray-300">{item.visaStatus || "N/A"}</span></div>
-                              {item.totalExp && <div>Exp: <span className="font-semibold">{item.totalExp} years</span></div>}
+                              {item.totalExp && <div>Exp: <span className="font-semibold">{item.totalExp}</span></div>}
                               {item.preferredRole && <div>Role: <span className="italic">{item.preferredRole}</span></div>}
                             </div>
                           </td>
