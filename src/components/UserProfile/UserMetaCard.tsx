@@ -82,6 +82,15 @@ export default function UserMetaCard({ profile, onRefresh }: UserMetaCardProps) 
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (formData.linkedin.trim()) {
+      const linkedinRegex = /^(https?:\/\/)?(www\.)?linkedin\.com\/.*$/i;
+      if (!linkedinRegex.test(formData.linkedin.trim())) {
+        showToast("Please enter a valid LinkedIn URL.", "error");
+        return;
+      }
+    }
+
     setSaving(true);
 
     try {
@@ -188,7 +197,7 @@ export default function UserMetaCard({ profile, onRefresh }: UserMetaCardProps) 
 
               {profile?.linkedin && (
                 <a
-                  href={profile.linkedin}
+                  href={profile.linkedin.startsWith('http') ? profile.linkedin : `https://${profile.linkedin}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex h-11 w-11 items-center justify-center gap-2 rounded-full border border-gray-300 bg-white text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
@@ -299,6 +308,9 @@ export default function UserMetaCard({ profile, onRefresh }: UserMetaCardProps) 
                       value={formData.linkedin}
                       onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
                     />
+                    {formData.linkedin && !/^(https?:\/\/)?(www\.)?linkedin\.com\/.*$/i.test(formData.linkedin.trim()) && (
+                      <span className="text-xs text-red-500 mt-1 block">Please enter a valid LinkedIn URL.</span>
+                    )}
                   </div>
 
                   <div>

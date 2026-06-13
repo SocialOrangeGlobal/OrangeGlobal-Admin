@@ -4,7 +4,8 @@ import Badge from "../../components/ui/badge/Badge";
 import {
   User, FileText, Calendar, ShieldCheck, Mail, Target, Briefcase,
   GraduationCap, Building, Globe, Clock, Award,
-  BookOpen, Download, ExternalLink, Eye, X, ZoomIn, Building2
+  Download, Eye, X, ZoomIn, Building2, ExternalLink,
+  BookOpen
 } from "lucide-react";
 
 interface ApplicationViewModalProps {
@@ -204,8 +205,8 @@ export default function ApplicationViewModal({
               <div>
                 <p className="text-[10px] text-gray-400 dark:text-gray-500 mb-0.5 font-bold uppercase tracking-wider">LinkedIn</p>
                 {talent.linkedin ? (
-                  <a href={talent.linkedin} target="_blank" rel="noreferrer" className="text-sm text-brand-500 font-semibold hover:underline inline-flex items-center gap-1">
-                    <ExternalLink className="w-3.5 h-3.5" /> View Profile
+                  <a href={talent.linkedin.startsWith('http') ? talent.linkedin : `https://${talent.linkedin}`} target="_blank" rel="noreferrer" className="text-sm text-brand-500 font-semibold hover:underline inline-flex items-center gap-1.5">
+                    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg> View Profile
                   </a>
                 ) : <p className="text-sm text-gray-800 dark:text-white font-semibold">N/A</p>}
               </div>
@@ -651,7 +652,7 @@ export default function ApplicationViewModal({
 
       {/* ── Full-screen Document Viewer Overlay ── */}
       {selectedDoc && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
           <div className="bg-white dark:bg-gray-900 rounded-[2rem] w-full max-w-4xl max-h-[92vh] overflow-hidden flex flex-col shadow-2xl">
             {/* Viewer header */}
             <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-800 gap-4">
@@ -665,6 +666,14 @@ export default function ApplicationViewModal({
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
+                <a
+                  href={selectedDoc.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-bold transition-colors"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" /> Open in New Tab
+                </a>
                 <a
                   href={selectedDoc.url}
                   download

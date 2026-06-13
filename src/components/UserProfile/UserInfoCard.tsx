@@ -45,6 +45,15 @@ export default function UserInfoCard({ profile, onRefresh }: UserInfoCardProps) 
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (formData.linkedin.trim()) {
+      const linkedinRegex = /^(https?:\/\/)?(www\.)?linkedin\.com\/.*$/i;
+      if (!linkedinRegex.test(formData.linkedin.trim())) {
+        showToast("Please enter a valid LinkedIn URL.", "error");
+        return;
+      }
+    }
+
     setSaving(true);
 
     try {
@@ -198,6 +207,9 @@ export default function UserInfoCard({ profile, onRefresh }: UserInfoCardProps) 
                       value={formData.linkedin}
                       onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
                     />
+                    {formData.linkedin && !/^(https?:\/\/)?(www\.)?linkedin\.com\/.*$/i.test(formData.linkedin.trim()) && (
+                      <span className="text-xs text-red-500 mt-1 block">Please enter a valid LinkedIn URL.</span>
+                    )}
                   </div>
 
                   <div>

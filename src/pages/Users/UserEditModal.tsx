@@ -254,6 +254,13 @@ export default function UserEditModal({
         showToast("Country of Residence is required.", "error");
         return;
       }
+      if (editProfile.linkedin?.trim()) {
+        const linkedinRegex = /^(https?:\/\/)?(www\.)?linkedin\.com\/.*$/i;
+        if (!linkedinRegex.test(editProfile.linkedin.trim())) {
+          showToast("Please enter a valid LinkedIn URL.", "error");
+          return;
+        }
+      }
       if (!editProfile.opportunityType?.trim()) {
         showToast("Please select an opportunity type.", "error");
         return;

@@ -499,6 +499,9 @@ export const TalentEditForm: React.FC<TalentEditFormProps> = ({
             <div className="col-span-2">
               <label className={labelBase}>LinkedIn Profile URL</label>
               <Input type="text" value={editProfile.linkedin || ""} onChange={(e) => setEditProfile({ ...editProfile, linkedin: e.target.value })} />
+              {editProfile.linkedin && !/^(https?:\/\/)?(www\.)?linkedin\.com\/.*$/i.test(editProfile.linkedin.trim()) && (
+                <span className="text-xs text-red-500 mt-1 block">Please enter a valid LinkedIn URL.</span>
+              )}
             </div>
 
             {renderImageUpload("Profile Picture", "avatarUrl", "profile-pictures")}
