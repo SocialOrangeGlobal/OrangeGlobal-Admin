@@ -53,6 +53,7 @@ export default function MessagePage() {
   const [isUpdatingMeta, setIsUpdatingMeta] = useState(false);
   const [adminReply, setAdminReply] = useState("");
   const [isSendingReply, setIsSendingReply] = useState(false);
+  const [isTypingFocused, setIsTypingFocused] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api/v1";
 
@@ -467,170 +468,209 @@ export default function MessagePage() {
               </span>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
-              {/* Left Column - Enquiry Metadata */}
-              <div className="lg:col-span-6 space-y-4">
-                <div className="grid grid-cols-2 gap-4 bg-gray-50 dark:bg-white/[0.02] p-4 rounded-xl border border-gray-100 dark:border-gray-800">
-                  <div>
-                    <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">Sender Name</span>
-                    <span className="text-sm font-semibold text-gray-800 dark:text-white/90">{selectedMsg.fullName}</span>
-                  </div>
-                  <div>
-                    <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">Email Address</span>
-                    <span className="text-sm font-semibold text-gray-800 dark:text-white/90">{selectedMsg.email}</span>
-                  </div>
-                  <div>
-                    <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">Phone Number</span>
-                    <span className="text-sm font-semibold text-gray-800 dark:text-white/90">{selectedMsg.phone || "N/A"}</span>
-                  </div>
-                  <div>
-                    <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">Received Date</span>
-                    <span className="text-sm font-semibold text-gray-800 dark:text-white/90">
-                      {new Date(selectedMsg.createdAt).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-
-                <div>
-                  <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Subject</span>
-                  <div className="p-3 bg-gray-50 dark:bg-white/[0.02] rounded-xl border border-gray-100 dark:border-gray-800 text-sm font-bold text-gray-800 dark:text-white/90">
-                    {selectedMsg.subject}
-                  </div>
-                </div>
-
-                <div>
-                  <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Message Content</span>
-                  <div className="p-4 bg-gray-50 dark:bg-white/[0.02] rounded-xl border border-gray-100 dark:border-gray-800 text-sm leading-relaxed text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
-                    {selectedMsg.message}
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column - Review Actions & Chat */}
-              <div className="lg:col-span-6 space-y-6">
-                {/* Admin Status & Notes Form */}
-                <div className="bg-gray-50 dark:bg-white/[0.02] p-5 rounded-xl border border-gray-100 dark:border-gray-800 space-y-4">
-                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-200 dark:border-gray-800 pb-2">Review Actions</h4>
-
-                  <div className="grid grid-cols-2 gap-4 items-center">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[75vh] overflow-hidden">
+              {/* Left Column - Enquiry Metadata & Actions */}
+              <div className="lg:col-span-5 h-full overflow-y-auto pr-2 custom-scrollbar space-y-5 pb-6">
+                
+                {/* Sender Info Card */}
+                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 dark:border-gray-800 pb-3 mb-4">Contact Details</h4>
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-full bg-brand-50 dark:bg-brand-900/20 text-brand-600 flex items-center justify-center font-bold shrink-0">
+                        {selectedMsg.fullName.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">Sender Name</span>
+                        <span className="text-sm font-semibold text-gray-800 dark:text-white/90">{selectedMsg.fullName}</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-3 pt-2">
+                      <div>
+                        <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">Email Address</span>
+                        <a href={`mailto:${selectedMsg.email}`} className="text-sm font-semibold text-brand-600 dark:text-brand-400 hover:underline break-all">{selectedMsg.email}</a>
+                      </div>
+                      <div>
+                        <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">Phone Number</span>
+                        <span className="text-sm font-semibold text-gray-800 dark:text-white/90">{selectedMsg.phone || "N/A"}</span>
+                      </div>
+                    </div>
                     <div>
-                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Status</label>
-                      <Select
-                        options={adminStatusOptions}
-                        value={adminStatus}
-                        onChange={setAdminStatus}
-                        className="!h-10 !py-2"
-                      />
+                      <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">Received Date</span>
+                      <span className="text-sm font-semibold text-gray-800 dark:text-white/90">
+                        {new Date(selectedMsg.createdAt).toLocaleString(undefined, {
+                          weekday: 'short', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                        })}
+                      </span>
                     </div>
-                    <div className="pt-5 flex justify-end">
-                      <Button
-                        size="sm"
-                        disabled={isUpdatingMeta}
-                        onClick={handleUpdateMeta}
-                        className="cursor-pointer"
-                      >
-                        {isUpdatingMeta ? "Saving..." : "Save Actions"}
-                      </Button>
+                  </div>
+                </div>
+
+                {/* Original Message Card */}
+                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 dark:border-gray-800 pb-3 mb-4">Original Message</h4>
+                  <div>
+                    <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Subject</span>
+                    <div className="text-sm font-bold text-gray-800 dark:text-white/90 mb-4">
+                      {selectedMsg.subject}
                     </div>
+                  </div>
+                  <div>
+                    <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Message Content</span>
+                    <div className="p-4 bg-gray-50 dark:bg-white/[0.02] rounded-xl border border-gray-100 dark:border-gray-800 text-sm leading-relaxed text-gray-700 dark:text-gray-300 whitespace-pre-wrap font-medium">
+                      {selectedMsg.message}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Review Actions Card */}
+                <div className="bg-brand-50/50 dark:bg-brand-900/10 rounded-2xl border border-brand-100 dark:border-brand-900/30 p-5 shadow-sm space-y-4">
+                  <h4 className="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest border-b border-brand-100 dark:border-brand-900/30 pb-3">Review & Actions</h4>
+                  
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest block mb-2">Update Status</label>
+                    <Select
+                      options={adminStatusOptions}
+                      value={adminStatus}
+                      onChange={setAdminStatus}
+                      className="!h-10 !py-2 bg-white dark:bg-gray-900"
+                    />
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Internal Notes</label>
+                    <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest block mb-2">Internal Notes (Private)</label>
                     <textarea
                       value={adminNotes}
                       onChange={(e) => setAdminNotes(e.target.value)}
                       placeholder="Add private internal reviews or follow-up notes..."
-                      rows={2}
-                      className="w-full px-3 py-2 border border-gray-200 dark:border-gray-800 rounded-lg text-sm bg-white dark:bg-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 resize-none font-medium"
+                      rows={3}
+                      className="w-full px-3 py-2 border border-brand-200 dark:border-brand-800/50 rounded-xl text-sm bg-white dark:bg-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 resize-none font-medium custom-scrollbar"
                     />
+                  </div>
+
+                  <div className="pt-2 flex justify-end">
+                    <Button
+                      size="sm"
+                      disabled={isUpdatingMeta}
+                      onClick={handleUpdateMeta}
+                      className="cursor-pointer shadow-sm w-full sm:w-auto"
+                    >
+                      {isUpdatingMeta ? "Saving Changes..." : "Save Actions"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column - Chat Interface */}
+              <div className="lg:col-span-7 h-full flex flex-col bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+                <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-white/[0.02] flex items-center justify-between shrink-0">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 bg-brand-100 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400 rounded-lg">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-gray-800 dark:text-white uppercase tracking-widest">Live Threaded Conversation</h4>
+                      <p className="text-[10px] text-gray-400 font-medium mt-0.5">Replies are sent to {selectedMsg.fullName}'s email</p>
+                    </div>
                   </div>
                 </div>
 
-                {/* Live Threaded Conversation */}
-                <div className="flex flex-col h-full bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
-                  <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-white/[0.02]">
-                    <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                      <svg className="w-4 h-4 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                      </svg>
-                      Threaded Conversation
-                    </h4>
+                {/* Replies List */}
+                <div className="flex-1 overflow-y-auto p-5 space-y-6 bg-gray-50/30 dark:bg-gray-900/50 custom-scrollbar">
+                  {/* The original message as the first chat bubble */}
+                  <div className="flex gap-3 max-w-[85%] mr-auto">
+                    <div className="w-8 h-8 rounded-full bg-gray-200 text-gray-600 dark:bg-gray-800 dark:text-gray-300 flex items-center justify-center text-xs font-bold shrink-0 shadow-sm">
+                      {selectedMsg.fullName.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex flex-col items-start">
+                      <div className="flex items-center gap-2 mb-1 px-1">
+                        <span className="text-[10px] font-bold text-gray-600 dark:text-gray-300">{selectedMsg.fullName}</span>
+                        <span className="text-[9px] text-gray-400 font-medium">
+                          {new Date(selectedMsg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      <div className="px-4 py-3 text-[13px] leading-relaxed shadow-sm bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-[20px] rounded-tl-[4px]">
+                        <p className="whitespace-pre-wrap font-medium">{selectedMsg.message}</p>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Replies List */}
-                  <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-[350px] bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] dark:bg-none bg-fixed custom-scrollbar bg-opacity-50">
-                    {!selectedMsg.replies || selectedMsg.replies.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center h-full text-center space-y-2 opacity-50 py-10">
-                        <svg className="w-10 h-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  {!selectedMsg.replies || selectedMsg.replies.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-40 text-center space-y-3 opacity-50 py-10">
+                      <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-full">
+                        <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                         </svg>
-                        <p className="text-xs font-medium text-gray-500">No messages yet. Send the first reply below!</p>
                       </div>
-                    ) : (
-                      selectedMsg.replies.map((reply: any) => {
-                        const isSelf = reply.senderRole === "ADMIN";
-                        const senderName = isSelf
-                          ? `${reply.sender?.adminProfile?.firstName || "Orange"} ${reply.sender?.adminProfile?.lastName || "Global"}`
-                          : (reply.sender?.talentProfile?.fullName || "Talent User");
+                      <p className="text-xs font-medium text-gray-500">No replies yet. Start the conversation below!</p>
+                    </div>
+                  ) : (
+                    selectedMsg.replies.map((reply: any) => {
+                      const isSelf = reply.senderRole === "ADMIN";
+                      const senderName = isSelf
+                        ? `${reply.sender?.adminProfile?.firstName || "Orange"} ${reply.sender?.adminProfile?.lastName || "Global"}`
+                        : (reply.sender?.talentProfile?.fullName || "Talent User");
 
-                        return (
-                          <div
-                            key={reply.id}
-                            className={`flex gap-3 max-w-[85%] ${isSelf ? "ml-auto flex-row-reverse" : "mr-auto"}`}
-                          >
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 shadow-sm ${isSelf
-                              ? "bg-brand-100 text-brand-700 border border-brand-200 dark:bg-brand-900/40 dark:text-brand-300 dark:border-brand-800"
-                              : "bg-gray-100 text-gray-600 border border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
-                              }`}>
-                              {senderName.charAt(0)}
+                      return (
+                        <div
+                          key={reply.id}
+                          className={`flex gap-3 max-w-[85%] ${isSelf ? "ml-auto flex-row-reverse" : "mr-auto"}`}
+                        >
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 shadow-sm ${isSelf
+                            ? "bg-brand-100 text-brand-700 border border-brand-200 dark:bg-brand-900/40 dark:text-brand-300 dark:border-brand-800"
+                            : "bg-gray-200 text-gray-600 border border-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
+                            }`}>
+                            {senderName.charAt(0)}
+                          </div>
+                          <div className={`flex flex-col ${isSelf ? "items-end" : "items-start"}`}>
+                            <div className="flex items-center gap-2 mb-1 px-1">
+                              <span className="text-[10px] font-bold text-gray-600 dark:text-gray-300">{isSelf ? "You" : senderName}</span>
+                              <span className="text-[9px] text-gray-400 font-medium">
+                                {new Date(reply.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
                             </div>
-                            <div className={`flex flex-col ${isSelf ? "items-end" : "items-start"}`}>
-                              <div className="flex items-center gap-2 mb-1 px-1">
-                                <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400">{isSelf ? "You" : senderName}</span>
-                                <span className="text-[9px] text-gray-400 font-medium">
-                                  {new Date(reply.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </span>
-                              </div>
-                              <div className={`px-4 py-2.5 text-[13px] leading-relaxed shadow-sm ${isSelf
-                                ? "bg-brand-500 text-white rounded-[20px] rounded-tr-[4px]"
-                                : "bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-[20px] rounded-tl-[4px]"
-                                }`}>
-                                <p className="whitespace-pre-wrap font-medium">{reply.message}</p>
-                              </div>
+                            <div className={`px-4 py-3 text-[13px] leading-relaxed shadow-sm ${isSelf
+                              ? "bg-brand-500 text-white rounded-[20px] rounded-tr-[4px]"
+                              : "bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-[20px] rounded-tl-[4px]"
+                              }`}>
+                              <p className="whitespace-pre-wrap font-medium">{reply.message}</p>
                             </div>
                           </div>
-                        );
-                      })
-                    )}
-                  </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
 
-                  {/* Send Reply form */}
-                  <div className="p-3 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800">
-                    <div className="flex items-end gap-2 relative">
-                      <textarea
-                        value={adminReply}
-                        onChange={(e) => setAdminReply(e.target.value)}
-                        placeholder="Type your response here..."
-                        rows={1}
-                        className="flex-1 max-h-[120px] min-h-[44px] pl-4 pr-12 py-3 border border-gray-200 dark:border-gray-700 rounded-2xl text-[13px] bg-gray-50 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 resize-none font-medium custom-scrollbar"
-                      />
-                      <button
-                        disabled={isSendingReply || !adminReply.trim()}
-                        onClick={handleSendAdminReply}
-                        className="absolute right-1.5 bottom-1.5 h-[32px] w-[32px] rounded-xl bg-brand-500 text-white flex items-center justify-center hover:bg-brand-600 disabled:bg-gray-200 disabled:text-gray-400 dark:disabled:bg-gray-700 transition-all cursor-pointer shadow-sm disabled:shadow-none"
-                      >
-                        {isSendingReply ? (
-                          <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                        ) : (
-                          <svg className="w-4 h-4 ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                          </svg>
-                        )}
-                      </button>
-                    </div>
+                {/* Send Reply form */}
+                <div className="p-4 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 shrink-0">
+                  <div className={`flex items-end gap-2 relative transition-all duration-300 ease-in-out ${isTypingFocused || adminReply.trim() ? "min-h-[100px]" : "min-h-[48px]"}`}>
+                    <textarea
+                      value={adminReply}
+                      onFocus={() => setIsTypingFocused(true)}
+                      onBlur={() => setIsTypingFocused(false)}
+                      onChange={(e) => setAdminReply(e.target.value)}
+                      placeholder="Type your response here... Pressing 'Send' will email the user directly."
+                      className="absolute inset-0 w-full h-full pl-4 pr-14 py-3.5 border border-gray-200 dark:border-gray-700 rounded-2xl text-[13px] bg-gray-50 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 resize-none font-medium custom-scrollbar transition-all duration-300"
+                    />
+                    <button
+                      disabled={isSendingReply || !adminReply.trim()}
+                      onClick={handleSendAdminReply}
+                      className="absolute right-2 bottom-2 h-[36px] w-[36px] rounded-xl bg-brand-500 text-white flex items-center justify-center hover:bg-brand-600 disabled:bg-gray-200 disabled:text-gray-400 dark:disabled:bg-gray-700 transition-all cursor-pointer shadow-sm disabled:shadow-none"
+                    >
+                      {isSendingReply ? (
+                        <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      ) : (
+                        <svg className="w-4 h-4 ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                      )}
+                    </button>
                   </div>
                 </div>
               </div>
