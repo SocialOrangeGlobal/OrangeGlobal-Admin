@@ -77,16 +77,18 @@ export default function Home() {
           <DashboardMetrics metrics={stats.metrics} />
         </div>
 
-        {/* Charts Row */}
-        <div className="col-span-12 space-y-6 xl:col-span-7">
-          <ApplicationTrendsChart statusDistribution={stats.applicationStatusDistribution} />
-
-          <RecentApplications applications={stats.recentApplications} />
+        {/* Top Overview Row */}
+        <div className="col-span-12">
+          <JobStatusOverview activeJobs={stats.metrics.activeJobs} totalJobs={stats.metrics.totalJobs} />
         </div>
 
-        {/* Side Overview Row */}
-        <div className="col-span-12 xl:col-span-5">
-          <JobStatusOverview activeJobs={stats.metrics.activeJobs} totalJobs={stats.metrics.totalJobs} />
+        {/* Charts and Recent Applications Row */}
+        <div className="col-span-12 xl:col-span-6">
+          <ApplicationTrendsChart statusDistribution={stats.applicationStatusDistribution} />
+        </div>
+        
+        <div className="col-span-12 xl:col-span-6">
+          <RecentApplications applications={stats.recentApplications} />
         </div>
 
       </div>
