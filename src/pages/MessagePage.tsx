@@ -57,6 +57,7 @@ export default function MessagePage() {
   const [adminReply, setAdminReply] = useState("");
   const [isSendingReply, setIsSendingReply] = useState(false);
   const [isTypingFocused, setIsTypingFocused] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api/v1";
 
@@ -72,9 +73,17 @@ export default function MessagePage() {
       const res = await authFetch(`${API_URL}/contact?${queryParams}`);
       if (res.ok) {
         const result = await res.json();
-        setItems(result?.data?.items || []);
+        const newItems = result?.data?.items || [];
+        setItems(newItems);
         setTotal(result?.data?.total || 0);
         setPages(result?.data?.pages || 1);
+        
+        // Auto-sync selected message if it's open
+        setSelectedMsg((prev: any) => {
+          if (!prev) return null;
+          const updated = newItems.find((i: any) => i.id === prev.id);
+          return updated || prev;
+        });
       } else {
         showToast("Failed to fetch enquiries", "error");
       }
@@ -181,6 +190,20 @@ export default function MessagePage() {
     };
   }, []);
 
+  // Auto-scroll chat to bottom
+  useEffect(() => {
+    if (selectedMsg?.replies && chatEndRef.current) {
+      setTimeout(() => {
+        if (chatEndRef.current) {
+          const container = chatEndRef.current.parentElement;
+          if (container) {
+            container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+          }
+        }
+      }, 100);
+    }
+  }, [selectedMsg?.replies]);
+
   useEffect(() => {
     if (selectedMsg && selectedMsg.id) {
       // Mark as read
@@ -278,22 +301,25 @@ export default function MessagePage() {
         showToast("Reply sent successfully!", "success");
         setAdminReply("");
         // Inject reply into active detail view and item in list
+        const actualReply = newReply.data || newReply;
         setSelectedMsg((prev: any) => {
           if (!prev) return null;
           return {
             ...prev,
-            replies: [...(prev.replies || []), newReply.data || newReply]
+            replies: [...(prev.replies || []), actualReply]
           };
         });
         setItems((prev: any[]) => prev.map((item: any) => {
           if (item.id === selectedMsg.id) {
             return {
               ...item,
-              replies: [...(item.replies || []), newReply.data || newReply]
+              replies: [...(item.replies || []), actualReply]
             };
           }
           return item;
         }));
+        // Also fetch to guarantee real-time sync with backend
+        fetchMessages();
       } else {
         showToast("Failed to send reply", "error");
       }
@@ -722,6 +748,7 @@ export default function MessagePage() {
                       );
                     })
                   )}
+                  <div ref={chatEndRef} />
                 </div>
 
                 {/* Send Reply form */}
