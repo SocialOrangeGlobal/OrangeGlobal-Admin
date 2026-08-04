@@ -12,7 +12,7 @@ import { Check, CheckCheck } from "lucide-react";
 export default function MessagePage() {
   const { authFetch, showToast } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [typingUsers, setTypingUsers] = useState<Record<string, boolean>>({});
+  const [, setTypingUsers] = useState<Record<string, boolean>>({});
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const enquiryIdParam = searchParams.get("id");
 

@@ -10,7 +10,7 @@ import { Modal } from '../components/ui/modal';
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api/v1";
 
 const DirectMessages = () => {
-  const { authFetch, showToast, user } = useAuth();
+  const { authFetch, showToast } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const [messages, setMessages] = useState<any[]>([]);
