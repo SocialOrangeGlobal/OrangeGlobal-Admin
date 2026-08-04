@@ -155,6 +155,7 @@ export default function UserEditModal({
           empCertUrl: selectedUser.empCertUrl || "",
           englishTestUrl: selectedUser.englishTestUrl || "",
           licenceUrl: selectedUser.licenceUrl || "",
+          financialStatementUrl: selectedUser.financialStatementUrl || "",
           resumeUrl: selectedUser.resumeUrl || "",
           avatarUrl: selectedUser.avatarUrl || "",
           declarationTrue: selectedUser.declarationTrue || "",

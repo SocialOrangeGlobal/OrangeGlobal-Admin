@@ -52,6 +52,11 @@ const navItems: NavItem[] = [
     icon: <ChatIcon />,
     path: "/messages",
   },
+  {
+    name: "Chats",
+    icon: <ChatIcon />,
+    path: "/direct-messages",
+  },
   // {
   //   name: "Forms",
   //   icon: <ListIcon />,

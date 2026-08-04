@@ -20,6 +20,7 @@ import FormElements from "./pages/Forms/FormElements";
 import Blank from "./pages/Blank";
 import NotificationsPage from "./pages/NotificationsPage";
 import MessagePage from "./pages/MessagePage";
+import DirectMessages from "./pages/DirectMessages";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
@@ -45,6 +46,7 @@ export default function App() {
                 <Route path="/blank" element={<Blank />} />
                 <Route path="/notifications" element={<NotificationsPage />} />
                 <Route path="/messages" element={<MessagePage />} />
+                <Route path="/direct-messages" element={<DirectMessages />} />
 
                 {/* Forms */}
                 <Route path="/form-elements" element={<FormElements />} />

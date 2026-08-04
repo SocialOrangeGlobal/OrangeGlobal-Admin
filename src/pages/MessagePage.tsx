@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router";
 import PageBreadcrumb from "../components/common/PageBreadCrumb";
 import PageMeta from "../components/common/PageMeta";
@@ -7,10 +7,13 @@ import Button from "../components/ui/button/Button";
 import PageLoader from "../components/ui/PageLoader";
 import { Modal } from "../components/ui/modal";
 import Select from "../components/form/Select";
+import { Check, CheckCheck } from "lucide-react";
 
 export default function MessagePage() {
   const { authFetch, showToast } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [typingUsers, setTypingUsers] = useState<Record<string, boolean>>({});
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const enquiryIdParam = searchParams.get("id");
 
   const typeOptions = [
@@ -124,11 +127,68 @@ export default function MessagePage() {
       );
     };
 
+    const handleChatRead = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const { threadId } = customEvent.detail;
+      setSelectedMsg((prev: any) => {
+        if (prev && prev.id === threadId) {
+          return {
+            ...prev,
+            replies: prev.replies?.map((r: any) => ({ ...r, isRead: true }))
+          };
+        }
+        return prev;
+      });
+      setItems((prevItems: any[]) => prevItems.map((item: any) => {
+        if (item.id === threadId) {
+          return {
+            ...item,
+            replies: item.replies?.map((r: any) => ({ ...r, isRead: true }))
+          };
+        }
+        return item;
+      }));
+    };
+
+    const handleChatTyping = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const { threadId, isTyping } = customEvent.detail;
+      setTypingUsers(prev => ({ ...prev, [threadId]: isTyping }));
+    };
+
+    window.addEventListener('ws_chat_read', handleChatRead);
+    window.addEventListener('ws_chat_typing', handleChatTyping);
     window.addEventListener('ws_new_chat_reply', handleNewChatReply);
     return () => {
+      window.removeEventListener('ws_chat_read', handleChatRead);
+      window.removeEventListener('ws_chat_typing', handleChatTyping);
       window.removeEventListener('ws_new_chat_reply', handleNewChatReply);
     };
   }, []);
+
+  useEffect(() => {
+    if (selectedMsg && selectedMsg.id) {
+      // Mark as read
+      authFetch(`${API_URL}/contact/${selectedMsg.id}/read`, { method: "PATCH" })
+      .then(() => {
+        // Optimistic local update
+        setSelectedMsg((prev: any) => {
+          if (prev && prev.id === selectedMsg.id) {
+            return {
+              ...prev,
+              replies: prev.replies?.map((r: any) => {
+                const isAdmin = r.senderRole === 'ADMIN' || (r as any).sender_role === 'ADMIN' || r.sender?.role === 'ADMIN' || r.senderRole === 'admin';
+                if (!isAdmin) return { ...r, isRead: true };
+                return r;
+              })
+            };
+          }
+          return prev;
+        });
+      })
+      .catch(console.error);
+    }
+  }, [selectedMsg?.id, authFetch, API_URL]);
 
   // Open details and sync states
   const handleOpenDetails = (msg: any) => {
@@ -207,14 +267,14 @@ export default function MessagePage() {
           if (!prev) return null;
           return {
             ...prev,
-            replies: [...(prev.replies || []), newReply]
+            replies: [...(prev.replies || []), newReply.data || newReply]
           };
         });
         setItems((prev: any[]) => prev.map((item: any) => {
           if (item.id === selectedMsg.id) {
             return {
               ...item,
-              replies: [...(item.replies || []), newReply]
+              replies: [...(item.replies || []), newReply.data || newReply]
             };
           }
           return item;
@@ -608,7 +668,7 @@ export default function MessagePage() {
                     </div>
                   ) : (
                     selectedMsg.replies.map((reply: any) => {
-                      const isSelf = reply.senderRole === "ADMIN";
+                      const isSelf = reply.senderRole === "ADMIN" || reply.sender_role === "ADMIN" || reply.sender?.role === "ADMIN" || reply.senderRole === "admin";
                       const senderName = isSelf
                         ? `${reply.sender?.adminProfile?.firstName || "Orange"} ${reply.sender?.adminProfile?.lastName || "Global"}`
                         : (reply.sender?.talentProfile?.fullName || "Talent User");
@@ -637,6 +697,11 @@ export default function MessagePage() {
                               }`}>
                               <p className="whitespace-pre-wrap font-medium">{reply.message}</p>
                             </div>
+                            {isSelf && (
+                              <div className="flex items-center ml-1">
+                                {reply.isRead ? <CheckCheck className="w-3 h-3 text-blue-400" /> : <Check className="w-3 h-3 text-white/70" />}
+                              </div>
+                            )}
                           </div>
                         </div>
                       );
@@ -651,7 +716,18 @@ export default function MessagePage() {
                       value={adminReply}
                       onFocus={() => setIsTypingFocused(true)}
                       onBlur={() => setIsTypingFocused(false)}
-                      onChange={(e) => setAdminReply(e.target.value)}
+                      onChange={(e) => {
+                        setAdminReply(e.target.value);
+                        if (!typingTimeoutRef.current) {
+                          authFetch(`${API_URL}/contact/${selectedMsg.id}/typing`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isTyping: true }) }).catch(() => {});
+                        } else {
+                          clearTimeout(typingTimeoutRef.current);
+                        }
+                        typingTimeoutRef.current = setTimeout(() => {
+                          authFetch(`${API_URL}/contact/${selectedMsg.id}/typing`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isTyping: false }) }).catch(() => {});
+                          typingTimeoutRef.current = null;
+                        }, 2000);
+                      }}
                       placeholder="Type your response here... Pressing 'Send' will email the user directly."
                       className="absolute inset-0 w-full h-full pl-4 pr-14 py-3.5 border border-gray-200 dark:border-gray-700 rounded-2xl text-[13px] bg-gray-50 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 resize-none font-medium custom-scrollbar transition-all duration-300"
                     />

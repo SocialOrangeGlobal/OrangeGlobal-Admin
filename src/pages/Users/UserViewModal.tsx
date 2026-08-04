@@ -71,7 +71,8 @@ export default function UserViewModal({
       { url: selectedUser.eduCertUrl, title: "Education_Certificate" },
       { url: selectedUser.empCertUrl, title: "Employment_Certificate" },
       { url: selectedUser.englishTestUrl, title: "English_Test" },
-      { url: selectedUser.licenceUrl, title: "Licence" }
+      { url: selectedUser.licenceUrl, title: "Licence" },
+      { url: selectedUser.financialStatementUrl, title: "Financial_Statement" }
     ].filter(d => d.url);
 
     try {
@@ -146,7 +147,8 @@ export default function UserViewModal({
     selectedUser.eduCertUrl ||
     selectedUser.empCertUrl ||
     selectedUser.englishTestUrl ||
-    selectedUser.licenceUrl
+    selectedUser.licenceUrl ||
+    selectedUser.financialStatementUrl
   ));
 
 
@@ -158,7 +160,8 @@ export default function UserViewModal({
     { name: 'Education Certificate', type: 'Education', url: selectedUser.eduCertUrl },
     { name: 'Employment Certificate', type: 'Employment', url: selectedUser.empCertUrl },
     { name: 'English Test Result', type: 'English Test', url: selectedUser.englishTestUrl },
-    { name: 'Licence Document', type: 'Licence', url: selectedUser.licenceUrl }
+    { name: 'Licence Document', type: 'Licence', url: selectedUser.licenceUrl },
+    { name: 'Financial Statement', type: 'Financial Statement', url: selectedUser.financialStatementUrl }
   ].filter(d => d.url) : [];
 
   return (

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useSearchParams } from "react-router";
+import { useSearchParams, useNavigate } from "react-router";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import { useAuth } from "../../context/AuthContext";
@@ -11,12 +11,14 @@ import UserEditModal from "./UserEditModal";
 import UserDeleteModal from "./UserDeleteModal";
 import DocPreviewModal from "./DocPreviewModal";
 import PageLoader from "../../components/ui/PageLoader";
+import { DirectMessageModal } from "./DirectMessageModal";
 
 export default function UsersPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get("tab") === "employers" ? "employers" : "talents";
 
   const { authFetch, showToast } = useAuth();
+  const navigate = useNavigate();
 
   // Data States
   const [items, setItems] = useState<any[]>([]);
@@ -32,6 +34,7 @@ export default function UsersPage() {
   const [viewOpen, setViewOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
 
   // Document Preview Modal states
   const [activeDocUrl, setActiveDocUrl] = useState<string | null>(null);
@@ -102,6 +105,11 @@ export default function UsersPage() {
   const handleEdit = (item: any) => {
     setSelectedUser(item);
     setEditOpen(true);
+  };
+
+  // Open Chat modal
+  const handleChat = (item: any) => {
+    navigate("/direct-messages", { state: { newChatUser: item } });
   };
 
   // Handle Edit Submit from Child Modal
@@ -369,6 +377,15 @@ export default function UsersPage() {
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2">
                           <button
+                            onClick={() => handleChat(item)}
+                            className="rounded-md p-1.5 text-blue-500 hover:bg-blue-50 hover:text-blue-600 dark:text-blue-400 dark:hover:bg-blue-950/20"
+                            title="Direct Message"
+                          >
+                            <svg className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
+                          </button>
+                          <button
                             onClick={() => handleView(item)}
                             className="rounded-md p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
                             title="View Profile Details"
@@ -500,6 +517,12 @@ export default function UsersPage() {
         onClose={() => setActiveDocUrl(null)}
         docUrl={activeDocUrl}
         docTitle={activeDocTitle}
+      />
+
+      <DirectMessageModal
+        isOpen={isMessageModalOpen}
+        onClose={() => setIsMessageModalOpen(false)}
+        user={selectedUser}
       />
     </>
   );
