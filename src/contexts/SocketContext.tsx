@@ -106,7 +106,10 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     const token = getToken();
-    if (!token) return;
+    if (!token) {
+      reconnectTimer.current = setTimeout(connect, 1000);
+      return;
+    }
 
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
