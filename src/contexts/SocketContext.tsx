@@ -132,6 +132,8 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
             if (prev.some((n) => n.id === notif.id)) return prev;
             return [notif, ...prev];
           });
+          // Dispatch window event so pages can refetch lists if needed
+          window.dispatchEvent(new CustomEvent('ws_new_notification', { detail: notif }));
         } else if (msg.event === 'new_chat_reply' && msg.data) {
           // Dispatch window event for live chat listener
           window.dispatchEvent(new CustomEvent('ws_new_chat_reply', { detail: msg.data }));

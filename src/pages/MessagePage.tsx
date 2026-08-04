@@ -113,8 +113,13 @@ export default function MessagePage() {
       });
 
       // Update item replies in the table list
-      setItems((prevItems: any[]) =>
-        prevItems.map((item: any) => {
+      setItems((prevItems: any[]) => {
+        const exists = prevItems.some((item: any) => item.id === enquiryId);
+        if (!exists) {
+          fetchMessages();
+          return prevItems;
+        }
+        return prevItems.map((item: any) => {
           if (item.id === enquiryId) {
             if (item.replies?.some((r: any) => r.id === reply.id)) return item;
             return {
@@ -123,8 +128,16 @@ export default function MessagePage() {
             };
           }
           return item;
-        })
-      );
+        });
+      });
+    };
+
+    const handleNewNotification = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const notif = customEvent.detail;
+      if (notif.link?.includes('/contact') || notif.link?.includes('/direct-messages') || notif.type === 'MESSAGE') {
+        fetchMessages();
+      }
     };
 
     const handleChatRead = (e: Event) => {
@@ -159,10 +172,12 @@ export default function MessagePage() {
     window.addEventListener('ws_chat_read', handleChatRead);
     window.addEventListener('ws_chat_typing', handleChatTyping);
     window.addEventListener('ws_new_chat_reply', handleNewChatReply);
+    window.addEventListener('ws_new_notification', handleNewNotification);
     return () => {
       window.removeEventListener('ws_chat_read', handleChatRead);
       window.removeEventListener('ws_chat_typing', handleChatTyping);
       window.removeEventListener('ws_new_chat_reply', handleNewChatReply);
+      window.removeEventListener('ws_new_notification', handleNewNotification);
     };
   }, []);
 
