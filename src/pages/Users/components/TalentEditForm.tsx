@@ -746,7 +746,9 @@ export const TalentEditForm: React.FC<TalentEditFormProps> = ({
               {renderDocUploadCard("Employment Certificates / Experience Letters", "empCertUrl", "talent-documents")}
               {renderDocUploadCard("English Test Results", "englishTestUrl", "talent-documents")}
               {renderDocUploadCard("Professional Licences / Certifications", "licenceUrl", "talent-documents")}
-              {renderDocUploadCard("Financial Statement", "financialStatementUrl", "talent-documents")}
+              {renderDocUploadCard("Bank Statement", "bankStatementUrl", "talent-documents")}
+              {renderDocUploadCard("Tax Document", "taxDocumentUrl", "talent-documents")}
+              {renderDocUploadCard("Pay Slip", "paySlipUrl", "talent-documents")}
               {renderDocUploadCard("Resume / CV Document", "resumeUrl", "resumes", true)}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-gray-100 dark:border-gray-800">

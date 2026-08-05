@@ -72,7 +72,9 @@ export default function UserViewModal({
       { url: selectedUser.empCertUrl, title: "Employment_Certificate" },
       { url: selectedUser.englishTestUrl, title: "English_Test" },
       { url: selectedUser.licenceUrl, title: "Licence" },
-      { url: selectedUser.financialStatementUrl, title: "Financial_Statement" }
+      { url: selectedUser.bankStatementUrl, title: "Bank_Statement" },
+      { url: selectedUser.taxDocumentUrl, title: "Tax_Document" },
+      { url: selectedUser.paySlipUrl, title: "Pay_Slip" }
     ].filter(d => d.url);
 
     try {
@@ -148,7 +150,9 @@ export default function UserViewModal({
     selectedUser.empCertUrl ||
     selectedUser.englishTestUrl ||
     selectedUser.licenceUrl ||
-    selectedUser.financialStatementUrl
+    selectedUser.bankStatementUrl ||
+    selectedUser.taxDocumentUrl ||
+    selectedUser.paySlipUrl
   ));
 
 
@@ -161,7 +165,9 @@ export default function UserViewModal({
     { name: 'Employment Certificate', type: 'Employment', url: selectedUser.empCertUrl },
     { name: 'English Test Result', type: 'English Test', url: selectedUser.englishTestUrl },
     { name: 'Licence Document', type: 'Licence', url: selectedUser.licenceUrl },
-    { name: 'Financial Statement', type: 'Financial Statement', url: selectedUser.financialStatementUrl }
+    { name: 'Bank Statement', type: 'Bank Statement', url: selectedUser.bankStatementUrl },
+    { name: 'Tax Document', type: 'Tax Document', url: selectedUser.taxDocumentUrl },
+    { name: 'Pay Slip', type: 'Pay Slip', url: selectedUser.paySlipUrl }
   ].filter(d => d.url) : [];
 
   return (

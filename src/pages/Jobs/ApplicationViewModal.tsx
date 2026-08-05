@@ -69,7 +69,9 @@ export default function ApplicationViewModal({
     { name: "Employment Certificate", url: talent.empCertUrl, type: "Work Certificate" },
     { name: "English Test Result", url: talent.englishTestUrl, type: "English Result" },
     { name: "Licences / Other Credentials", url: talent.licenceUrl, type: "Credentials License" },
-    { name: "Financial Statement", url: talent.financialStatementUrl, type: "Financial Statement" },
+    { name: "Bank Statement", url: talent.bankStatementUrl, type: "Bank Statement" },
+    { name: "Tax Document", url: talent.taxDocumentUrl, type: "Tax Document" },
+    { name: "Pay Slip", url: talent.paySlipUrl, type: "Pay Slip" },
   ].filter(doc => !!doc.url);
 
   return (
