@@ -57,19 +57,6 @@ const navItems: NavItem[] = [
     icon: <ChatIcon />,
     path: "/direct-messages",
   },
-  // {
-  //   name: "Forms",
-  //   icon: <ListIcon />,
-  //   subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],
-  // },
-  // {
-  //   name: "Pages",
-  //   icon: <PageIcon />,
-  //   subItems: [
-  //     { name: "Blank Page", path: "/blank", pro: false },
-  //     { name: "404 Error", path: "/error-404", pro: false },
-  //   ],
-  // },
   {
     icon: <CalenderIcon />,
     name: "Calendar",

@@ -23,7 +23,7 @@ const DirectMessages = () => {
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const hasInitializedNewChatRef = useRef(false);
-  
+
   // Grouping state
   const [expandedUserIds, setExpandedUserIds] = useState<Record<string, boolean>>({});
   const [isolatedUserId, setIsolatedUserId] = useState<string | null>(null);
@@ -34,31 +34,35 @@ const DirectMessages = () => {
   const [usersList, setUsersList] = useState<any[]>([]);
   const [isUsersLoading, setIsUsersLoading] = useState(false);
   const searchRequestIdRef = useRef(0);
-  const [selectedUser, setSelectedUser] = useState<any | null>(null);
+  const [selectedUsers, setSelectedUsers] = useState<any[]>([]);
   const [newChatMessage, setNewChatMessage] = useState('');
+  const [isSendingNewChat, setIsSendingNewChat] = useState(false);
+  const [usersPage, setUsersPage] = useState(1);
+  const [hasMoreUsers, setHasMoreUsers] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
 
-  const fetchMessages = useCallback(async () => {
+  const fetchMessages = useCallback(async (silent = false) => {
     try {
-      setIsLoading(true);
+      if (!silent) setIsLoading(true);
       const res = await authFetch(`${API_URL}/contact?type=DIRECT_MESSAGE&limit=500`);
       if (res.ok) {
         const result = await res.json();
         let directMessages = result?.data?.items || [];
-        
+
         // Sort by latest update (either latest reply or creation date)
         directMessages.sort((a: any, b: any) => {
           const aLast = a.replies?.length ? new Date(a.replies[a.replies.length - 1].createdAt).getTime() : new Date(a.createdAt).getTime();
           const bLast = b.replies?.length ? new Date(b.replies[b.replies.length - 1].createdAt).getTime() : new Date(b.createdAt).getTime();
           return bLast - aLast;
         });
-        
+
         setMessages(directMessages);
       }
     } catch (error: any) {
       console.error('Error fetching direct messages:', error);
       showToast('Failed to load your messages', 'error');
     } finally {
-      setIsLoading(false);
+      if (!silent) setIsLoading(false);
     }
   }, [authFetch, showToast]);
 
@@ -69,7 +73,7 @@ const DirectMessages = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isTyping }),
       });
-    } catch (e) {}
+    } catch (e) { }
   };
 
   useEffect(() => {
@@ -90,18 +94,20 @@ const DirectMessages = () => {
       const userToChat = location.state.newChatUser;
       const targetUserId = userToChat.user?.id || userToChat.userId || userToChat.id;
       const existingThread = messages.find(msg => msg.userId === targetUserId || msg.user?.id === targetUserId);
-      
+
       setIsolatedUserId(targetUserId);
       setExpandedUserIds(prev => ({ ...prev, [targetUserId]: true }));
-      
+
       if (existingThread) {
         setActiveMessageId(existingThread.id);
       } else {
         setIsNewChatModalOpen(true);
-        setSelectedUser(userToChat.user || userToChat);
-        setNewChatSearch(userToChat.firstName || userToChat.companyName || userToChat.email || '');
+        setSelectedUsers([userToChat]);
+        setNewChatSearch('');
+        setUsersPage(1);
+        fetchUsersList('', 1, false);
       }
-      
+
       // Clear the state so it doesn't reopen on refresh
       window.history.replaceState({}, document.title);
     }
@@ -111,21 +117,21 @@ const DirectMessages = () => {
     if (activeMessageId) {
       // Mark as read
       authFetch(`${API_URL}/contact/${activeMessageId}/read`, { method: "PATCH" })
-      .then(() => {
-        setMessages(prev => prev.map(msg => {
-          if (msg.id === activeMessageId) {
-            return {
-              ...msg,
-              replies: msg.replies?.map((r: any) => {
-                const isAdmin = r.senderRole === 'ADMIN' || r.sender?.role === 'ADMIN';
-                if (!isAdmin) return { ...r, isRead: true };
-                return r;
-              })
-            };
-          }
-          return msg;
-        }));
-      }).catch(console.error);
+        .then(() => {
+          setMessages(prev => prev.map(msg => {
+            if (msg.id === activeMessageId) {
+              return {
+                ...msg,
+                replies: msg.replies?.map((r: any) => {
+                  const isAdmin = r.senderRole === 'ADMIN' || r.sender?.role === 'ADMIN';
+                  if (!isAdmin) return { ...r, isRead: true };
+                  return r;
+                })
+              };
+            }
+            return msg;
+          }));
+        }).catch(console.error);
     }
   }, [activeMessageId, authFetch]);
 
@@ -203,6 +209,7 @@ const DirectMessages = () => {
       });
       if (res.ok) {
         setReplyText('');
+        fetchMessages(true);
       } else {
         showToast('Failed to send reply', 'error');
       }
@@ -215,63 +222,103 @@ const DirectMessages = () => {
   };
 
 
-  const fetchUsersList = async (search: string = '') => {
+  const fetchUsersList = async (search: string = '', page: number = 1, append: boolean = false) => {
     const currentRequestId = ++searchRequestIdRef.current;
-    setIsUsersLoading(true);
+    if (page === 1) setIsUsersLoading(true);
+    else setIsFetchingMore(true);
+
     try {
-      const resT = await authFetch(`${API_URL}/users/talents?limit=20&search=${encodeURIComponent(search)}`);
-      const resE = await authFetch(`${API_URL}/users/employers?limit=20&search=${encodeURIComponent(search)}`);
+      const resT = await authFetch(`${API_URL}/users/talents?page=${page}&limit=20&search=${encodeURIComponent(search)}`);
+      const resE = await authFetch(`${API_URL}/users/employers?page=${page}&limit=20&search=${encodeURIComponent(search)}`);
+
+      if (currentRequestId !== searchRequestIdRef.current && page === 1) return;
+
+      let list: any[] = [];
+      let hasMore = false;
       
-      // Prevent older requests from overwriting newer ones
-      if (currentRequestId !== searchRequestIdRef.current) return;
-      
-      let list = [];
       if (resT.ok) {
-         const json = await resT.json();
-         list.push(...(json.data?.items || json.items || []));
+        const json = await resT.json();
+        const items = json.data?.items || json.items || [];
+        list.push(...items);
+        if (json.data?.meta?.hasNextPage || items.length === 20) hasMore = true;
       }
       if (resE.ok) {
-         const json = await resE.json();
-         list.push(...(json.data?.items || json.items || []));
+        const json = await resE.json();
+        const items = json.data?.items || json.items || [];
+        list.push(...items);
+        if (json.data?.meta?.hasNextPage || items.length === 20) hasMore = true;
       }
-      setUsersList(list);
+      
+      if (append) {
+        setUsersList(prev => {
+          const newMap = new Map(prev.map(u => [u.id || u.user?.id, u]));
+          list.forEach(u => newMap.set(u.id || u.user?.id, u));
+          return Array.from(newMap.values());
+        });
+      } else {
+        setUsersList(list);
+      }
+      setHasMoreUsers(hasMore);
     } catch (e) {
       console.error(e);
     } finally {
-      if (currentRequestId === searchRequestIdRef.current) {
-        setIsUsersLoading(false);
+      if (currentRequestId === searchRequestIdRef.current || page !== 1) {
+        if (page === 1) setIsUsersLoading(false);
+        setIsFetchingMore(false);
       }
     }
   };
 
   const handleOpenNewChat = () => {
     setIsNewChatModalOpen(true);
-    setSelectedUser(null);
+    setSelectedUsers([]);
     setNewChatMessage('');
-    fetchUsersList();
+    setUsersPage(1);
+    fetchUsersList('', 1, false);
   };
 
-  const handleStartNewChat = async () => {
-    if (!selectedUser || !newChatMessage.trim()) return;
-    try {
-      const res = await authFetch(`${API_URL}/contact/direct`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: selectedUser.userId || selectedUser.user?.id || selectedUser.id, message: newChatMessage.trim() }),
-      });
-      if (res.ok) {
-        showToast('Chat session started!', 'success');
-        setIsNewChatModalOpen(false);
-        fetchMessages();
-      } else {
-        showToast('Failed to start chat', 'error');
+  const handleUserListScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
+    if (scrollHeight - scrollTop <= clientHeight + 50) {
+      if (!isFetchingMore && hasMoreUsers && !isUsersLoading) {
+        const nextPage = usersPage + 1;
+        setUsersPage(nextPage);
+        fetchUsersList(newChatSearch, nextPage, true);
       }
-    } catch(e) {
-      showToast('Failed to start chat', 'error');
     }
   };
 
-  const filteredMessages = messages.filter(msg => 
+  const handleStartNewChat = async () => {
+    if (selectedUsers.length === 0 || !newChatMessage.trim()) return;
+    setIsSendingNewChat(true);
+    try {
+      const promises = selectedUsers.map(user =>
+        authFetch(`${API_URL}/contact/direct`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: user.userId || user.user?.id || user.id, message: newChatMessage.trim() }),
+        })
+      );
+
+      const results = await Promise.all(promises);
+      const allSuccess = results.every(res => res.ok);
+
+      if (allSuccess) {
+        showToast('Chat sessions started!', 'success');
+        setIsNewChatModalOpen(false);
+        fetchMessages();
+      } else {
+        showToast('Failed to start some chats', 'error');
+        fetchMessages();
+      }
+    } catch (e) {
+      showToast('Failed to start chats', 'error');
+    } finally {
+      setIsSendingNewChat(false);
+    }
+  };
+
+  const filteredMessages = messages.filter(msg =>
     msg.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     msg.message?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     msg.user?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -285,7 +332,7 @@ const DirectMessages = () => {
       const uid = msg.userId || msg.user?.id || 'unknown';
       // If we are isolating a user, skip others
       if (isolatedUserId && uid !== isolatedUserId) return;
-      
+
       if (!groups[uid]) {
         groups[uid] = { user: msg.user, sessions: [] };
       }
@@ -310,13 +357,13 @@ const DirectMessages = () => {
       <PageBreadcrumb pageTitle="Chats" />
 
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex overflow-hidden h-[calc(100vh-200px)] min-h-[500px]">
-        
+
         {/* Sidebar */}
         <div className={`w-full md:w-[350px] lg:w-[400px] border-r border-gray-100 dark:border-gray-800 flex flex-col shrink-0 transition-transform ${activeMessageId ? 'hidden md:flex' : 'flex'}`}>
           <div className="p-4 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 flex items-center justify-between gap-2">
             <div className="relative flex-1">
               <Search className="w-4 h-4 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
-              <input 
+              <input
                 type="text"
                 placeholder="Search users or chats..."
                 value={searchQuery}
@@ -343,7 +390,7 @@ const DirectMessages = () => {
                 <MessagesSquare className="w-10 h-10 mb-3 opacity-50" />
                 <p className="text-sm font-medium">No messages found</p>
                 {isolatedUserId && (
-                  <button 
+                  <button
                     onClick={() => setIsolatedUserId(null)}
                     className="mt-4 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg text-xs font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                   >
@@ -364,7 +411,7 @@ const DirectMessages = () => {
                 {groupedUsers.map((group) => {
                   const uName = group.user?.talentProfile?.fullName || group.user?.employerProfile?.companyName || group.user?.email || group.sessions[0]?.fullName || 'User';
                   const isExpanded = expandedUserIds[group.user?.id] || false;
-                  
+
                   return (
                     <div key={group.user?.id || 'unknown'} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
                       <button
@@ -382,20 +429,20 @@ const DirectMessages = () => {
                           <ChevronLeft className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? '-rotate-90' : ''}`} />
                         </div>
                       </button>
-                      
+
                       {isExpanded && (
                         <div className="divide-y divide-gray-50 dark:divide-gray-800 bg-white dark:bg-gray-900">
                           {group.sessions.map(msg => {
                             const isActive = msg.id === activeMessageId;
                             const lastReply = msg.replies && msg.replies.length > 0 ? msg.replies[msg.replies.length - 1] : null;
                             const previewText = lastReply ? lastReply.message : msg.message;
-                            
+
                             // Check for unread replies
                             const unreadCount = msg.replies?.filter((r: any) => {
                               const isAdmin = r.senderRole === 'ADMIN' || r.sender?.role === 'ADMIN';
                               return !isAdmin && !r.isRead;
                             }).length || 0;
-                            
+
                             return (
                               <button
                                 key={msg.id}
@@ -436,7 +483,12 @@ const DirectMessages = () => {
 
         {/* Main Chat Area */}
         <div className={`flex-1 flex flex-col bg-[#F8FAFC] dark:bg-gray-900/50 relative ${!activeMessageId ? 'hidden md:flex' : 'flex'}`}>
-          {!activeMessage ? (
+          {isLoading ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-brand-500 bg-white dark:bg-gray-900">
+              <div className="w-12 h-12 border-4 border-brand-500/20 border-t-brand-500 rounded-full animate-spin mb-4" />
+              <p className="text-gray-500 dark:text-gray-400 font-medium animate-pulse">Loading conversation...</p>
+            </div>
+          ) : !activeMessage ? (
             <div className="flex-1 flex flex-col items-center justify-center text-gray-400 bg-white dark:bg-gray-900">
               <div className="w-24 h-24 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mb-6">
                 <MessagesSquare className="w-10 h-10 text-gray-300 dark:text-gray-600" />
@@ -449,7 +501,7 @@ const DirectMessages = () => {
               {/* Chat Header */}
               <div className="h-[70px] px-6 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex items-center justify-between shrink-0 sticky top-0 z-10">
                 <div className="flex items-center gap-4">
-                  <button 
+                  <button
                     onClick={() => setActiveMessageId(null)}
                     className="md:hidden p-2 -ml-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
                   >
@@ -472,28 +524,10 @@ const DirectMessages = () => {
 
               {/* Chat Messages Container */}
               <div className="flex-1 overflow-y-auto p-6 space-y-6 [&::-webkit-scrollbar]:w-[6px] [&::-webkit-scrollbar-thumb]:bg-gray-200 [&::-webkit-scrollbar-thumb]:rounded-full">
-                
-                {/* Original Message Context */}
-                <div className="flex justify-center mb-8 relative">
-                  <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                    <div className="w-full border-t border-gray-200 dark:border-gray-800"></div>
-                  </div>
-                  <div className="relative flex justify-center">
-                    <span className="px-4 text-[10px] font-bold uppercase tracking-widest text-gray-400 bg-[#F8FAFC] dark:bg-gray-900/50">
-                      Original Message
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 shadow-sm max-w-3xl mx-auto">
-                  <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap text-center leading-relaxed">
-                    {activeMessage.message}
-                  </p>
-                </div>
 
                 {/* Replies List */}
                 {activeMessage.replies?.map((reply: any, idx: number) => {
-                  const isAdmin = reply.senderRole === 'ADMIN' || reply.sender?.role === 'ADMIN';
+                  const isAdmin = reply.senderRole?.toUpperCase() === 'ADMIN' || reply.sender?.role?.toUpperCase() === 'ADMIN' || (reply as any).sender_role?.toUpperCase() === 'ADMIN';
                   const senderName = isAdmin
                     ? `You`
                     : (reply.sender?.talentProfile?.fullName || reply.sender?.employerProfile?.companyName || 'User');
@@ -522,29 +556,28 @@ const DirectMessages = () => {
                           </span>
                         </div>
                         <div
-                          className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-5 py-3 shadow-sm ${
-                            isAdmin
-                              ? 'bg-brand-500 text-white rounded-tr-sm'
-                              : 'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-tl-sm'
-                          }`}
+                          className={`w-fit max-w-[100%] rounded-2xl px-5 py-3 shadow-sm text-left break-words ${isAdmin
+                            ? 'bg-brand-500 text-white rounded-tr-sm'
+                            : 'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-tl-sm'
+                            }`}
                         >
                           <p className="text-sm whitespace-pre-wrap leading-relaxed">{reply.message}</p>
                         </div>
                         {isAdmin && (
-                           <div className="mt-1 pr-1 flex items-center gap-1 text-[10px] text-gray-400 font-medium">
-                             {reply.isRead ? (
-                               <CheckCheck className="w-3.5 h-3.5 text-brand-500" />
-                             ) : (
-                               <Check className="w-3.5 h-3.5" />
-                             )}
-                             {reply.isRead ? 'Read' : 'Sent'}
-                           </div>
+                          <div className="mt-1 pr-1 flex items-center gap-1 text-[10px] text-gray-400 font-medium">
+                            {reply.isRead ? (
+                              <CheckCheck className="w-3.5 h-3.5 text-brand-500" />
+                            ) : (
+                              <Check className="w-3.5 h-3.5" />
+                            )}
+                            {reply.isRead ? 'Read' : 'Sent'}
+                          </div>
                         )}
                       </div>
                     </motion.div>
                   );
                 })}
-                
+
                 {/* Typing Indicator */}
                 {typingUsers[activeMessage.id] && (
                   <div className="flex items-center gap-2 text-gray-400 text-sm mt-4 px-2">
@@ -565,13 +598,16 @@ const DirectMessages = () => {
                     value={replyText}
                     onChange={(e) => {
                       setReplyText(e.target.value);
+                      const target = e.target;
+                      target.style.height = 'auto';
+                      target.style.height = Math.min(target.scrollHeight, 150) + 'px';
                       if (!typingTimeoutRef.current) {
-                        triggerTyping(activeMessage.id, true).catch(() => {});
+                        triggerTyping(activeMessage.id, true).catch(() => { });
                       } else {
                         clearTimeout(typingTimeoutRef.current);
                       }
                       typingTimeoutRef.current = setTimeout(() => {
-                        triggerTyping(activeMessage.id, false).catch(() => {});
+                        triggerTyping(activeMessage.id, false).catch(() => { });
                         typingTimeoutRef.current = null;
                       }, 2000);
                     }}
@@ -579,16 +615,25 @@ const DirectMessages = () => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
                         handleSendReply(activeMessage.id);
+                        setTimeout(() => {
+                          if (e.target instanceof HTMLTextAreaElement) {
+                            e.target.style.height = 'auto';
+                          }
+                        }, 0);
                       }
                     }}
                     placeholder="Type a message..."
                     rows={1}
                     style={{ minHeight: '52px', maxHeight: '150px' }}
-                    className="flex-1 px-5 py-3.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 rounded-xl focus:bg-white dark:focus:bg-gray-900 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none text-sm font-medium transition-all resize-none [&::-webkit-scrollbar]:w-[4px]"
+                    className="flex-1 px-5 py-3.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 rounded-xl focus:bg-white dark:focus:bg-gray-900 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 outline-none text-sm font-medium transition-colors resize-none overflow-y-auto [&::-webkit-scrollbar]:w-[4px]"
                   />
                   <button
                     disabled={isSendingReply || !replyText.trim()}
-                    onClick={() => handleSendReply(activeMessage.id)}
+                    onClick={(e) => {
+                      handleSendReply(activeMessage.id);
+                      const textarea = e.currentTarget.parentElement?.querySelector('textarea');
+                      if (textarea) textarea.style.height = 'auto';
+                    }}
                     className="h-[52px] w-[52px] rounded-xl bg-brand-500 text-white flex items-center justify-center shadow-md hover:shadow-lg hover:shadow-brand-500/20 disabled:opacity-50 disabled:shadow-none transition-all shrink-0"
                   >
                     {isSendingReply ? (
@@ -606,9 +651,9 @@ const DirectMessages = () => {
 
       </div>
 
-      <Modal isOpen={isNewChatModalOpen} onClose={() => setIsNewChatModalOpen(false)} className="max-w-md p-6 bg-white dark:bg-gray-900">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Start New Chat</h3>
-        
+      <Modal isOpen={isNewChatModalOpen} onClose={() => setIsNewChatModalOpen(false)} className="max-w-2xl w-[90vw] p-6 bg-white dark:bg-gray-900">
+        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Start New Chat</h3>
+
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search User</label>
@@ -620,38 +665,80 @@ const DirectMessages = () => {
                 value={newChatSearch}
                 onChange={(e) => {
                   setNewChatSearch(e.target.value);
-                  fetchUsersList(e.target.value);
+                  setUsersPage(1);
+                  fetchUsersList(e.target.value, 1, false);
                 }}
                 className="w-full pl-9 pr-3 py-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
               />
             </div>
           </div>
 
-          <div className="max-h-48 overflow-y-auto border border-gray-100 dark:border-gray-700 rounded-lg">
-            {isUsersLoading ? (
-              <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">Loading...</div>
-            ) : usersList.length > 0 ? (
-              usersList.map(u => {
-                const name = u.fullName || u.companyName || u.user?.email || 'Unknown';
-                const email = u.workEmail || u.businessEmail || u.user?.email || '';
-                const role = u.user?.role || 'USER';
-                
+          <div 
+            className="max-h-72 overflow-y-auto border border-gray-100 dark:border-gray-700 rounded-lg"
+            onScroll={handleUserListScroll}
+          >
+            {(() => {
+              if (isUsersLoading && usersList.length === 0 && selectedUsers.length === 0) {
+                return <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">Loading...</div>;
+              }
+              
+              const getUserId = (obj: any) => obj?.userId || obj?.user?.id || obj?.id;
+              
+              const combinedList = [
+                ...selectedUsers.map(su => {
+                  const freshUser = usersList.find(u => getUserId(u) === getUserId(su));
+                  return { ...(freshUser || su), _isSelected: true };
+                }),
+                ...usersList.filter(u => !selectedUsers.some(su => getUserId(su) === getUserId(u))).map(u => ({ ...u, _isSelected: false }))
+              ];
+
+              if (combinedList.length === 0) {
+                return <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">No users found</div>;
+              }
+
+              return combinedList.map(u => {
+                const name = u.fullName || 
+                             (u.firstName || u.lastName ? `${u.firstName || ''} ${u.lastName || ''}`.trim() : null) ||
+                             u.companyName || 
+                             u.user?.fullName || 
+                             (u.user?.firstName || u.user?.lastName ? `${u.user?.firstName || ''} ${u.user?.lastName || ''}`.trim() : null) ||
+                             u.user?.email || 
+                             u.email || 
+                             'Unknown';
+                const email = u.workEmail || u.businessEmail || u.user?.email || u.email || '';
+                const role = u.user?.role || u.role || 'USER';
+                const isSelected = u._isSelected;
+
                 return (
-                  <button
-                    key={u.id || u.user?.id}
-                    onClick={() => setSelectedUser(u)}
-                    className={`w-full text-left p-3 text-sm flex items-center justify-between border-b border-gray-50 dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800 ${selectedUser?.id === u.id ? 'bg-brand-50 dark:bg-brand-500/10' : ''}`}
+                  <label
+                    key={getUserId(u) || Math.random()}
+                    className={`w-full text-left p-3 text-sm flex items-center gap-3 border-b border-gray-50 dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer ${isSelected ? 'bg-brand-50 dark:bg-brand-500/10' : ''}`}
                   >
-                    <div className="flex flex-col">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 text-brand-500 rounded border-gray-300 focus:ring-brand-500 cursor-pointer"
+                      checked={isSelected}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedUsers(prev => [...prev, u]);
+                        } else {
+                          setSelectedUsers(prev => prev.filter(su => getUserId(su) !== getUserId(u)));
+                        }
+                      }}
+                    />
+                    <div className="flex-1 flex flex-col">
                       <span className="font-medium text-gray-900 dark:text-white">{name}</span>
                       <span className="text-xs text-gray-500 dark:text-gray-400">{email}</span>
                     </div>
-                    <span className="text-[10px] uppercase font-bold text-brand-500 bg-brand-50 dark:bg-brand-500/20 px-2 py-0.5 rounded-full">{role}</span>
-                  </button>
+                    <span className="text-[10px] uppercase font-bold text-brand-500 bg-brand-50 dark:bg-brand-500/20 px-2 py-0.5 rounded-full shrink-0">{role}</span>
+                  </label>
                 );
-              })
-            ) : (
-              <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">No users found</div>
+              });
+            })()}
+            {isFetchingMore && (
+              <div className="p-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 border-t border-gray-50 dark:border-gray-700">
+                Loading more...
+              </div>
             )}
           </div>
 
@@ -675,10 +762,11 @@ const DirectMessages = () => {
             </button>
             <button
               onClick={handleStartNewChat}
-              disabled={!selectedUser || !newChatMessage.trim()}
-              className="px-4 py-2 text-sm font-medium text-white bg-brand-500 hover:bg-brand-600 rounded-lg transition-colors disabled:opacity-50"
+              disabled={selectedUsers.length === 0 || !newChatMessage.trim() || isSendingNewChat}
+              className="px-4 py-2 text-sm font-medium text-white bg-brand-500 hover:bg-brand-600 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
             >
-              Start Chat
+              {isSendingNewChat && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+              Start Chat {selectedUsers.length > 0 && `(${selectedUsers.length})`}
             </button>
           </div>
         </div>

@@ -77,7 +77,7 @@ export default function MessagePage() {
         setItems(newItems);
         setTotal(result?.data?.total || 0);
         setPages(result?.data?.pages || 1);
-        
+
         // Auto-sync selected message if it's open
         setSelectedMsg((prev: any) => {
           if (!prev) return null;
@@ -208,23 +208,23 @@ export default function MessagePage() {
     if (selectedMsg && selectedMsg.id) {
       // Mark as read
       authFetch(`${API_URL}/contact/${selectedMsg.id}/read`, { method: "PATCH" })
-      .then(() => {
-        // Optimistic local update
-        setSelectedMsg((prev: any) => {
-          if (prev && prev.id === selectedMsg.id) {
-            return {
-              ...prev,
-              replies: prev.replies?.map((r: any) => {
-                const isAdmin = r.senderRole === 'ADMIN' || (r as any).sender_role === 'ADMIN' || r.sender?.role === 'ADMIN' || r.senderRole === 'admin';
-                if (!isAdmin) return { ...r, isRead: true };
-                return r;
-              })
-            };
-          }
-          return prev;
-        });
-      })
-      .catch(console.error);
+        .then(() => {
+          // Optimistic local update
+          setSelectedMsg((prev: any) => {
+            if (prev && prev.id === selectedMsg.id) {
+              return {
+                ...prev,
+                replies: prev.replies?.map((r: any) => {
+                  const isAdmin = r.senderRole === 'ADMIN' || (r as any).sender_role === 'ADMIN' || r.sender?.role === 'ADMIN' || r.senderRole === 'admin';
+                  if (!isAdmin) return { ...r, isRead: true };
+                  return r;
+                })
+              };
+            }
+            return prev;
+          });
+        })
+        .catch(console.error);
     }
   }, [selectedMsg?.id, authFetch, API_URL]);
 
@@ -253,7 +253,7 @@ export default function MessagePage() {
         }
       };
       fetchSingleEnquiry();
-      
+
       // Clean up search param so the modal doesn't keep opening on subsequent route refreshes
       setSearchParams({}, { replace: true });
     }
@@ -572,7 +572,7 @@ export default function MessagePage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[75vh] overflow-hidden">
               {/* Left Column - Enquiry Metadata & Actions */}
               <div className="lg:col-span-5 h-full overflow-y-auto pr-2 custom-scrollbar space-y-5 pb-6">
-                
+
                 {/* Sender Info Card */}
                 <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
                   <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 dark:border-gray-800 pb-3 mb-4">Contact Details</h4>
@@ -607,27 +607,10 @@ export default function MessagePage() {
                   </div>
                 </div>
 
-                {/* Original Message Card */}
-                <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
-                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 dark:border-gray-800 pb-3 mb-4">Original Message</h4>
-                  <div>
-                    <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Subject</span>
-                    <div className="text-sm font-bold text-gray-800 dark:text-white/90 mb-4">
-                      {selectedMsg.subject}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Message Content</span>
-                    <div className="p-4 bg-gray-50 dark:bg-white/[0.02] rounded-xl border border-gray-100 dark:border-gray-800 text-sm leading-relaxed text-gray-700 dark:text-gray-300 whitespace-pre-wrap font-medium">
-                      {selectedMsg.message}
-                    </div>
-                  </div>
-                </div>
-
                 {/* Review Actions Card */}
                 <div className="bg-brand-50/50 dark:bg-brand-900/10 rounded-2xl border border-brand-100 dark:border-brand-900/30 p-5 shadow-sm space-y-4">
                   <h4 className="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest border-b border-brand-100 dark:border-brand-900/30 pb-3">Review & Actions</h4>
-                  
+
                   <div>
                     <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest block mb-2">Update Status</label>
                     <Select
@@ -761,12 +744,12 @@ export default function MessagePage() {
                       onChange={(e) => {
                         setAdminReply(e.target.value);
                         if (!typingTimeoutRef.current) {
-                          authFetch(`${API_URL}/contact/${selectedMsg.id}/typing`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isTyping: true }) }).catch(() => {});
+                          authFetch(`${API_URL}/contact/${selectedMsg.id}/typing`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isTyping: true }) }).catch(() => { });
                         } else {
                           clearTimeout(typingTimeoutRef.current);
                         }
                         typingTimeoutRef.current = setTimeout(() => {
-                          authFetch(`${API_URL}/contact/${selectedMsg.id}/typing`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isTyping: false }) }).catch(() => {});
+                          authFetch(`${API_URL}/contact/${selectedMsg.id}/typing`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isTyping: false }) }).catch(() => { });
                           typingTimeoutRef.current = null;
                         }, 2000);
                       }}
